@@ -11,9 +11,8 @@ header('Content-Type: text/html; charset=utf-8');
     body { font-family: Arial, sans-serif; padding: 24px; }
     h2 { margin-top: 0; }
     label { display:block; margin: 14px 0 6px; font-weight: 600; }
-    select, button { padding: 8px 10px; font-size: 14px; min-width: 320px; }
-    button { min-width: auto; margin-top: 12px; }
-    #status { margin-top: 14px; color: #555; white-space: pre-wrap; }
+    select, button { padding: 8px 10px; font-size: 14px; }
+    #status { margin-top: 16px; white-space: pre-wrap; color: #555; }
   </style>
 </head>
 <body>
@@ -28,7 +27,7 @@ header('Content-Type: text/html; charset=utf-8');
   <label for="field">Поле с городом</label>
   <select id="field"></select>
 
-  <div>
+  <div style="margin-top: 16px;">
     <button id="saveBtn">Сохранить</button>
     <button id="bindBtn">Создать поле и привязать</button>
   </div>
@@ -92,10 +91,21 @@ header('Content-Type: text/html; charset=utf-8');
 
       document.getElementById('bindBtn').addEventListener('click', function() {
         saveOptions(function(entity, field) {
+          const auth = BX24.getAuth();
+
+          if (!auth || !auth.access_token || !auth.domain) {
+            setStatus('Не удалось получить auth через BX24.getAuth()');
+            return;
+          }
+
           fetch('/bind', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ entity, field })
+            body: JSON.stringify({
+              entity,
+              field,
+              auth
+            })
           })
           .then(r => r.text())
           .then(text => setStatus(text))
