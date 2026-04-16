@@ -4,7 +4,6 @@ header('Content-Type: text/plain; charset=utf-8');
 $input = json_decode(file_get_contents('php://input'), true);
 
 $entity = $input['entity'] ?? 'lead';
-$field = $input['field'] ?? '';
 $auth = $input['auth'] ?? [];
 
 $domain = $auth['domain'] ?? '';
@@ -19,50 +18,73 @@ function bxCall(string $domain, string $token, string $method, array $params = [
 {
     $url = "https://{$domain}/rest/{$method}.json";
 
-    $params['auth'] = $token;
+    $payload = $params;
+    $payload['auth'] = $token;
+
+    $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
     $options = [
         'http' => [
             'method'  => 'POST',
-            'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
-            'content' => http_build_query($params),
-            'timeout' => 30
+            'header'  => "Content-Type: application/json\r\nAccept: application/json\r\n",
+            'content' => $json,
+            'ignore_errors' => true,
+            'timeout' => 30,
         ]
     ];
 
     $context = stream_context_create($options);
     $result = file_get_contents($url, false, $context);
 
-    if ($result === false) {
-        return ['error' => 'HTTP request failed'];
-    }
+    $decoded = json_decode($result ?: '', true);
 
-    $decoded = json_decode($result, true);
-    return is_array($decoded) ? $decoded : ['raw' => $result];
+    return [
+        'raw' => $result,
+        'decoded' => is_array($decoded) ? $decoded : null,
+    ];
 }
 
-$userTypeId = 'candidate_time';
+// 1. Узнаём APP_ID
+$appInfoRes = bxCall($domain, $accessToken, 'app.info', []);
+$appInfo = $appInfoRes['decoded']['result'] ?? null;
+
+if (!$appInfo || empty($appInfo['ID'])) {
+    echo "Не удалось получить app.info\n\n";
+    echo $appInfoRes['raw'] ?? '';
+    exit;
+}
+
+$appId = $appInfo['ID'];
+$baseUserTypeId = 'candidate_time';
+$finalUserTypeId = 'rest_' . $appId . '_' . $baseUserTypeId;
 $handlerUrl = 'https://project-jbfzb.vercel.app/field';
 
-// 1. Пытаемся зарегистрировать тип поля
+// 2. Регистрируем тип поля
 $typeRes = bxCall($domain, $accessToken, 'userfieldtype.add', [
-    'USER_TYPE_ID' => $userTypeId,
+    'USER_TYPE_ID' => $baseUserTypeId,
     'HANDLER' => $handlerUrl,
-    'TITLE[ru]' => 'Время кандидата',
-    'DESCRIPTION[ru]' => 'Показывает текущее время кандидата'
+    'TITLE' => 'Время кандидата',
+    'DESCRIPTION' => 'Показывает текущее время кандидата',
+    'OPTIONS' => [
+        'height' => 90
+    ]
 ]);
 
-// если тип уже существует — не считаем это фатальной ошибкой
-$typeInfo = "Регистрация типа поля:\n" . json_encode($typeRes, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+// Если тип уже существует — это не критично
+$typeDecoded = $typeRes['decoded'] ?? [];
+$typeError = $typeDecoded['error'] ?? '';
 
-// 2. Проверяем, есть ли уже поле
+// 3. Проверяем, есть ли уже поле
 $listMethod = $entity === 'deal' ? 'crm.deal.userfield.list' : 'crm.lead.userfield.list';
 $listRes = bxCall($domain, $accessToken, $listMethod, []);
+$listDecoded = $listRes['decoded'] ?? [];
+
+$fieldName = 'CAND_TIME'; // БЕЗ UF_CRM_
 
 $existingField = null;
-if (!empty($listRes['result']) && is_array($listRes['result'])) {
-    foreach ($listRes['result'] as $item) {
-        if (($item['FIELD_NAME'] ?? '') === 'UF_CRM_CANDIDATE_TIME') {
+if (!empty($listDecoded['result']) && is_array($listDecoded['result'])) {
+    foreach ($listDecoded['result'] as $item) {
+        if (($item['FIELD_NAME'] ?? '') === 'UF_CRM_' . $fieldName) {
             $existingField = $item;
             break;
         }
@@ -70,22 +92,37 @@ if (!empty($listRes['result']) && is_array($listRes['result'])) {
 }
 
 if ($existingField) {
-    echo $typeInfo . "\n\nПоле уже существует:\n" .
-         json_encode($existingField, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    echo "Тип поля:\n";
+    echo json_encode($typeDecoded, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    echo "\n\nПоле уже существует:\n";
+    echo json_encode($existingField, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     exit;
 }
 
-// 3. Создаём поле
+// 4. Создаём поле
 $addMethod = $entity === 'deal' ? 'crm.deal.userfield.add' : 'crm.lead.userfield.add';
 
 $fieldRes = bxCall($domain, $accessToken, $addMethod, [
-    'fields[FIELD_NAME]' => 'UF_CRM_CANDIDATE_TIME',
-    'fields[EDIT_FORM_LABEL][ru]' => 'Время кандидата',
-    'fields[LIST_COLUMN_LABEL][ru]' => 'Время кандидата',
-    'fields[LIST_FILTER_LABEL][ru]' => 'Время кандидата',
-    'fields[XML_ID]' => 'CANDIDATE_TIME',
-    'fields[USER_TYPE_ID]' => $userTypeId
+    'fields' => [
+        'FIELD_NAME' => $fieldName,
+        'USER_TYPE_ID' => $finalUserTypeId,
+        'LABEL' => 'Время кандидата',
+        'EDIT_FORM_LABEL' => ['ru' => 'Время кандидата'],
+        'LIST_COLUMN_LABEL' => ['ru' => 'Время кандидата'],
+        'LIST_FILTER_LABEL' => ['ru' => 'Время кандидата'],
+        'XML_ID' => 'CANDIDATE_TIME',
+        'MULTIPLE' => 'N',
+        'MANDATORY' => 'N',
+        'SHOW_FILTER' => 'N',
+        'SETTINGS' => []
+    ]
 ]);
 
-echo $typeInfo . "\n\nСоздание поля:\n" .
-     json_encode($fieldRes, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo "app.info:\n";
+echo json_encode($appInfoRes['decoded'], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+echo "\n\nРегистрация типа поля:\n";
+echo json_encode($typeDecoded, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+echo "\n\nСоздание поля:\n";
+echo json_encode($fieldRes['decoded'], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
