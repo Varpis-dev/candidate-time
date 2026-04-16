@@ -36,6 +36,7 @@ header('Content-Type: text/html; charset=utf-8');
     .city {
       font-size: 15px;
       color: #444;
+      line-height: 1.2;
     }
 
     .status-wrap {
@@ -48,6 +49,7 @@ header('Content-Type: text/html; charset=utf-8');
     .status {
       font-size: 13px;
       font-weight: 500;
+      line-height: 1.2;
     }
 
     .ok { color: #0b8f3c; }
@@ -56,12 +58,12 @@ header('Content-Type: text/html; charset=utf-8');
     .logo {
       height: 20px;
       width: auto;
+      flex-shrink: 0;
     }
   </style>
 </head>
 
 <body>
-
 <div class="wrap">
   <div class="time" id="time">--:--:--</div>
   <div class="city" id="city">Загрузка...</div>
@@ -81,9 +83,8 @@ const timeEl = document.getElementById('time');
 const cityEl = document.getElementById('city');
 const statusEl = document.getElementById('status');
 
-// Ручная карта таймзон.
-// ВАЖНО: сюда я внес основные и самые важные города/регионы.
-// Всё, чего тут нет, всё равно определится через API fallback ниже.
+// Основная карта таймзон.
+// Всё, чего нет здесь, определяем через API fallback ниже.
 const MANUAL_TZ = {
   // UTC+2
   "Калининград": "Europe/Kaliningrad",
@@ -93,8 +94,8 @@ const MANUAL_TZ = {
   // UTC+3
   "Москва": "Europe/Moscow",
   "Санкт-Петербург": "Europe/Moscow",
-  "Адлер": "Europe/Moscow",
   "Абинск": "Europe/Moscow",
+  "Адлер": "Europe/Moscow",
   "Азов": "Europe/Moscow",
   "Александров": "Europe/Moscow",
   "Алексин": "Europe/Moscow",
@@ -107,13 +108,11 @@ const MANUAL_TZ = {
   "Армавир": "Europe/Moscow",
   "Архангельск": "Europe/Moscow",
   "Архипо-Осиповка": "Europe/Moscow",
-  "Астрахань": "Europe/Samara",
   "Афипский": "Europe/Moscow",
   "Ахтубинск": "Europe/Moscow",
   "Бабаево": "Europe/Moscow",
   "Багаевская": "Europe/Moscow",
   "Базарный Карабулак": "Europe/Moscow",
-  "Балаково": "Europe/Samara",
   "Балахна": "Europe/Moscow",
   "Балашиха": "Europe/Moscow",
   "Балашов": "Europe/Moscow",
@@ -143,7 +142,6 @@ const MANUAL_TZ = {
   "Брянск": "Europe/Moscow",
   "Бугры": "Europe/Moscow",
   "Буденновск": "Europe/Moscow",
-  "Бузулук": "Asia/Yekaterinburg",
   "Буинск": "Europe/Moscow",
   "Буй": "Europe/Moscow",
   "Буйнакск": "Europe/Moscow",
@@ -242,7 +240,6 @@ const MANUAL_TZ = {
   "Елец": "Europe/Moscow",
   "Елизаветинская": "Europe/Moscow",
   "Емва": "Europe/Moscow",
-  "Ершов": "Europe/Samara",
   "Ессентуки": "Europe/Moscow",
   "Ессентукская": "Europe/Moscow",
   "Ефремов": "Europe/Moscow",
@@ -251,7 +248,6 @@ const MANUAL_TZ = {
   "Железнорожный": "Europe/Moscow",
   "Жердевка": "Europe/Moscow",
   "Жешарт": "Europe/Moscow",
-  "Жигулевск": "Europe/Samara",
   "Жирновск": "Europe/Moscow",
   "Жуковка": "Europe/Moscow",
   "Жуковский": "Europe/Moscow",
@@ -269,12 +265,10 @@ const MANUAL_TZ = {
   "Зеленокумск": "Europe/Moscow",
   "Зеленчукская": "Europe/Moscow",
   "Зерноград": "Europe/Moscow",
-  "Златоуст": "Asia/Yekaterinburg",
   "Зуевка": "Europe/Moscow",
   "Ивангород": "Europe/Moscow",
   "Иваново": "Europe/Moscow",
   "Ивантеевка": "Europe/Moscow",
-  "Ижевск": "Europe/Samara",
   "Избербаш": "Europe/Moscow",
   "Изобильный": "Europe/Moscow",
   "Иловля": "Europe/Moscow",
@@ -295,9 +289,7 @@ const MANUAL_TZ = {
   "Калязин": "Europe/Moscow",
   "Каменка": "Europe/Moscow",
   "Каменск-Шахтинский": "Europe/Moscow",
-  "Камызяк": "Europe/Samara",
   "Камышин": "Europe/Moscow",
-  "Камышлов": "Asia/Yekaterinburg",
   "Канаш": "Europe/Moscow",
   "Кандалакша": "Europe/Moscow",
   "Каневская": "Europe/Moscow",
@@ -316,7 +308,6 @@ const MANUAL_TZ = {
   "Кимовск": "Europe/Moscow",
   "Кимры": "Europe/Moscow",
   "Кингисепп": "Europe/Moscow",
-  "Кинель-Черкассы": "Europe/Samara",
   "Кинешма": "Europe/Moscow",
   "Киреевск": "Europe/Moscow",
   "Киржач": "Europe/Moscow",
@@ -360,7 +351,6 @@ const MANUAL_TZ = {
   "Кохма": "Europe/Moscow",
   "Кочетовка": "Europe/Moscow",
   "Кочубеевское": "Europe/Moscow",
-  "Кошки": "Europe/Samara",
   "Красавино": "Europe/Moscow",
   "Красково": "Europe/Moscow",
   "Красная Горка": "Europe/Moscow",
@@ -373,9 +363,6 @@ const MANUAL_TZ = {
   "Красное Село": "Europe/Moscow",
   "Красное-на-Волге": "Europe/Moscow",
   "Краснознаменск": "Europe/Moscow",
-  "Красный Кут": "Europe/Samara",
-  "Красный Сулин": "Europe/Moscow",
-  "Красный Яр": "Europe/Samara",
   "Кронштадт": "Europe/Moscow",
   "Кропоткин": "Europe/Moscow",
   "Крыловская": "Europe/Moscow",
@@ -438,7 +425,6 @@ const MANUAL_TZ = {
   "Малоярославец": "Europe/Moscow",
   "Мамадыш": "Europe/Moscow",
   "Мантурово": "Europe/Moscow",
-  "Маркс": "Europe/Samara",
   "Марьянская": "Europe/Moscow",
   "Матвеев Курган": "Europe/Moscow",
   "Матвеев-Курган": "Europe/Moscow",
@@ -448,7 +434,6 @@ const MANUAL_TZ = {
   "Медвежьегорск": "Europe/Moscow",
   "Мелитополь": "Europe/Moscow",
   "Менделеевск": "Europe/Moscow",
-  "Месягутово": "Asia/Yekaterinburg",
   "Мещерино": "Europe/Moscow",
   "Миллерово": "Europe/Moscow",
   "Минеральные Воды": "Europe/Moscow",
@@ -460,9 +445,7 @@ const MANUAL_TZ = {
   "Михайловская": "Europe/Moscow",
   "Михнево": "Europe/Moscow",
   "Мичуринск": "Europe/Moscow",
-  "Можга": "Europe/Samara",
   "Моздок": "Europe/Moscow",
-  "Мокроус": "Europe/Samara",
   "Монино": "Europe/Moscow",
   "Мончегорск": "Europe/Moscow",
   "Морозовск": "Europe/Moscow",
@@ -481,7 +464,6 @@ const MANUAL_TZ = {
   "Надежда": "Europe/Moscow",
   "Назрань": "Europe/Moscow",
   "Нальчик": "Europe/Moscow",
-  "Нариманов": "Europe/Samara",
   "Наро-Фоминск": "Europe/Moscow",
   "Нарткала": "Europe/Moscow",
   "Нарышкино": "Europe/Moscow",
@@ -491,8 +473,6 @@ const MANUAL_TZ = {
   "Невинномысск": "Europe/Moscow",
   "Некрасовский": "Europe/Moscow",
   "Нерехта": "Europe/Moscow",
-  "Нефтегорск": "Europe/Samara",
-  "Нефтекамск": "Asia/Yekaterinburg",
   "Нижнекамск": "Europe/Moscow",
   "Нижний Ломов": "Europe/Moscow",
   "Нижний Новгород": "Europe/Moscow",
@@ -521,7 +501,6 @@ const MANUAL_TZ = {
   "Новосадовый": "Europe/Moscow",
   "Новоселицкое": "Europe/Moscow",
   "Новотитаровская": "Europe/Moscow",
-  "Новоузенск": "Europe/Samara",
   "Новохоперск": "Europe/Moscow",
   "Новочебоксарск": "Europe/Moscow",
   "Новочебоксарсск": "Europe/Moscow",
@@ -538,8 +517,6 @@ const MANUAL_TZ = {
   "Одинцово": "Europe/Moscow",
   "Ожерелье": "Europe/Moscow",
   "Озеры": "Europe/Moscow",
-  "Озинки": "Europe/Samara",
-  "Октябрьск": "Europe/Samara",
   "Октябрьская": "Europe/Moscow",
   "Окуловка": "Europe/Moscow",
   "Оленегорск": "Europe/Moscow",
@@ -576,7 +553,6 @@ const MANUAL_TZ = {
   "Пестрецы": "Europe/Moscow",
   "Песчанокопское": "Europe/Moscow",
   "Петергоф": "Europe/Moscow",
-  "Петровск": "Europe/Samara",
   "Петрозаводск": "Europe/Moscow",
   "Печора": "Europe/Moscow",
   "Пешково": "Europe/Moscow",
@@ -588,7 +564,6 @@ const MANUAL_TZ = {
   "Подгоренский": "Europe/Moscow",
   "Подольск": "Europe/Moscow",
   "Подпорожье": "Europe/Moscow",
-  "Подстепки": "Europe/Samara",
   "Покров": "Europe/Moscow",
   "Покровское": "Europe/Moscow",
   "Полтавская": "Europe/Moscow",
@@ -596,16 +571,13 @@ const MANUAL_TZ = {
   "Полярный": "Europe/Moscow",
   "Почеп": "Europe/Moscow",
   "Приволжск": "Europe/Moscow",
-  "Придорожный": "Europe/Samara",
   "Приморск": "Europe/Moscow",
   "Приморско-Ахтарск": "Europe/Moscow",
   "Пролетарск": "Europe/Moscow",
-  "Промышленная": "Asia/Novokuznetsk",
   "Протвино": "Europe/Moscow",
   "Прохладный": "Europe/Moscow",
   "Псебай": "Europe/Moscow",
   "Псков": "Europe/Moscow",
-  "Пугачев": "Europe/Samara",
   "Пудож": "Europe/Moscow",
   "Путилково": "Europe/Moscow",
   "Пушкин": "Europe/Moscow",
@@ -635,14 +607,11 @@ const MANUAL_TZ = {
   "Рязань": "Europe/Moscow",
   "Савино": "Europe/Moscow",
   "Савинский": "Europe/Moscow",
-  "Салават": "Asia/Yekaterinburg",
   "Сальск": "Europe/Moscow",
   "Самарское": "Europe/Moscow",
   "Саранск": "Europe/Moscow",
-  "Сарапул": "Europe/Samara",
   "Саров": "Europe/Moscow",
   "Сасово": "Europe/Moscow",
-  "Сатка": "Asia/Yekaterinburg",
   "Сафоново": "Europe/Moscow",
   "Светлоград": "Europe/Moscow",
   "Светлый Яр": "Europe/Moscow",
@@ -664,7 +633,6 @@ const MANUAL_TZ = {
   "Серпухов": "Europe/Moscow",
   "Сертолово": "Europe/Moscow",
   "Сестрорецк": "Europe/Moscow",
-  "Сибай": "Asia/Yekaterinburg",
   "Симферополь": "Europe/Moscow",
   "Сириус": "Europe/Moscow",
   "Славянск-на-Кубани": "Europe/Moscow",
@@ -674,12 +642,10 @@ const MANUAL_TZ = {
   "Смоленская": "Europe/Moscow",
   "Снежногорск": "Europe/Moscow",
   "Собинка": "Europe/Moscow",
-  "Советский": "Asia/Yekaterinburg",
   "Сокол": "Europe/Moscow",
   "Солнечногорск": "Europe/Moscow",
-  "Солнечный": "Asia/Krasnoyarsk",
+  "Соль-Илецк": "Asia/Yekaterinburg",
   "Соновый Бор": "Europe/Moscow",
-  "Сорочинск": "Asia/Yekaterinburg",
   "Сортавала": "Europe/Moscow",
   "Сосенский": "Europe/Moscow",
   "Сосново": "Europe/Moscow",
@@ -689,7 +655,6 @@ const MANUAL_TZ = {
   "Спас-Клепики": "Europe/Moscow",
   "Ставрополь": "Europe/Moscow",
   "Становое": "Europe/Moscow",
-  "Старая Майна": "Europe/Samara",
   "Старая Полтавка": "Europe/Moscow",
   "Старая Русса": "Europe/Moscow",
   "Старовеличковская": "Europe/Moscow",
@@ -698,10 +663,8 @@ const MANUAL_TZ = {
   "Старомышастовская": "Europe/Moscow",
   "Старонижестеблиевская": "Europe/Moscow",
   "Старый Оскол": "Europe/Moscow",
-  "Степное": "Europe/Samara",
-  "Стерлитамак": "Asia/Yekaterinburg",
-  "Стрельна": "Europe/Moscow",
   "Строитель": "Europe/Moscow",
+  "Стрельна": "Europe/Moscow",
   "Струнино": "Europe/Moscow",
   "Ступино": "Europe/Moscow",
   "Суворовская": "Europe/Moscow",
@@ -720,7 +683,6 @@ const MANUAL_TZ = {
   "Тамбов": "Europe/Moscow",
   "Тарасовский": "Europe/Moscow",
   "Таруса": "Europe/Moscow",
-  "Татищево": "Europe/Samara",
   "Тацинская": "Europe/Moscow",
   "Тбилисская": "Europe/Moscow",
   "Тверь": "Europe/Moscow",
@@ -735,19 +697,15 @@ const MANUAL_TZ = {
   "Торбеево": "Europe/Moscow",
   "Торжок": "Europe/Moscow",
   "Тосно": "Europe/Moscow",
-  "Троицк": "Asia/Yekaterinburg",
   "Троицко-Печорск": "Europe/Moscow",
   "Троицкое": "Europe/Moscow",
   "Туапсе": "Europe/Moscow",
   "Тула": "Europe/Moscow",
   "Тутаев": "Europe/Moscow",
   "Тырныауз": "Europe/Moscow",
-  "Убинское": "Asia/Novosibirsk",
-  "Ува": "Europe/Samara",
   "Уварово": "Europe/Moscow",
   "Углич": "Europe/Moscow",
   "Удомля": "Europe/Moscow",
-  "Ужур": "Asia/Krasnoyarsk",
   "Узловая": "Europe/Moscow",
   "Унеча": "Europe/Moscow",
   "Уразово": "Europe/Moscow",
@@ -778,7 +736,6 @@ const MANUAL_TZ = {
   "Холмская": "Europe/Moscow",
   "Хоста": "Europe/Moscow",
   "Цивильск": "Europe/Moscow",
-  "Чапаевск": "Europe/Samara",
   "Чебоксары": "Europe/Moscow",
   "Чегем": "Europe/Moscow",
   "Чердаклы": "Europe/Samara",
@@ -789,7 +746,6 @@ const MANUAL_TZ = {
   "Чертково": "Europe/Moscow",
   "Чехов": "Europe/Moscow",
   "Чистополь": "Europe/Moscow",
-  "Чишмы": "Asia/Yekaterinburg",
   "Чкаловск": "Europe/Moscow",
   "Чудово": "Europe/Moscow",
   "Шатура": "Europe/Moscow",
@@ -808,21 +764,15 @@ const MANUAL_TZ = {
   "Электрогорск": "Europe/Moscow",
   "Электросталь": "Europe/Moscow",
   "Элиста": "Europe/Moscow",
-  "Энгельс": "Europe/Samara",
   "Энем": "Europe/Moscow",
   "Южный": "Europe/Moscow",
-  "Южноуральск": "Asia/Yekaterinburg",
   "Юрьев-Польский": "Europe/Moscow",
   "Яблоновский": "Europe/Moscow",
-  "Ягодное": "Europe/Magadan",
-  "Яйва": "Asia/Yekaterinburg",
   "Ялта": "Europe/Moscow",
   "Яранск": "Europe/Moscow",
   "Ярега": "Europe/Moscow",
   "Ярославль": "Europe/Moscow",
   "Ярцево": "Europe/Moscow",
-  "Ясный": "Asia/Yekaterinburg",
-  "Яя": "Asia/Novokuznetsk",
   "Станица Воронежская (Краснодарский край)": "Europe/Moscow",
   "Чалтырь": "Europe/Moscow",
 
@@ -834,6 +784,26 @@ const MANUAL_TZ = {
   "Саратов": "Europe/Samara",
   "Энгельс": "Europe/Samara",
   "Астрахань": "Europe/Samara",
+  "Балаково": "Europe/Samara",
+  "Безенчук": "Europe/Samara",
+  "Большая Черниговка": "Europe/Samara",
+  "Жигулевск": "Europe/Samara",
+  "Кинель-Черкассы": "Europe/Samara",
+  "Красный Кут": "Europe/Samara",
+  "Красный Яр": "Europe/Samara",
+  "Маркс": "Europe/Samara",
+  "Мокроус": "Europe/Samara",
+  "Нариманов": "Europe/Samara",
+  "Нефтегорск": "Europe/Samara",
+  "Новоузенск": "Europe/Samara",
+  "Озинки": "Europe/Samara",
+  "Октябрьск": "Europe/Samara",
+  "Пугачев": "Europe/Samara",
+  "Сарапул": "Europe/Samara",
+  "Старая Майна": "Europe/Samara",
+  "Степное": "Europe/Samara",
+  "Татищево": "Europe/Samara",
+  "Чапаевск": "Europe/Samara",
 
   // UTC+5
   "Екатеринбург": "Asia/Yekaterinburg",
@@ -857,15 +827,61 @@ const MANUAL_TZ = {
   "Салехард": "Asia/Yekaterinburg",
   "Лабытнанги": "Asia/Yekaterinburg",
   "Тарко-Сале": "Asia/Yekaterinburg",
-  "Лабытнанги": "Asia/Yekaterinburg",
+  "Аксарка": "Asia/Yekaterinburg",
+  "Алапаевск": "Asia/Yekaterinburg",
+  "Арамиль": "Asia/Yekaterinburg",
+  "Артемовский": "Asia/Yekaterinburg",
+  "Арти": "Asia/Yekaterinburg",
+  "Асбест": "Asia/Yekaterinburg",
+  "Бисерть": "Asia/Yekaterinburg",
+  "Богданович": "Asia/Yekaterinburg",
+  "Буланаш": "Asia/Yekaterinburg",
+  "Верхний Тагил": "Asia/Yekaterinburg",
+  "Верхняя Пышма": "Asia/Yekaterinburg",
+  "Верхняя Салда": "Asia/Yekaterinburg",
+  "Верхняя Тура": "Asia/Yekaterinburg",
+  "Верхотурье": "Asia/Yekaterinburg",
+  "Ивдель": "Asia/Yekaterinburg",
+  "Ирбит": "Asia/Yekaterinburg",
+  "Каменск-Уральский": "Asia/Yekaterinburg",
+  "Карпинск": "Asia/Yekaterinburg",
+  "Качканар": "Asia/Yekaterinburg",
+  "Краснотурьинск": "Asia/Yekaterinburg",
+  "Красноуральск": "Asia/Yekaterinburg",
+  "Красноуфимск": "Asia/Yekaterinburg",
+  "Кировград": "Asia/Yekaterinburg",
+  "Лесной": "Asia/Yekaterinburg",
+  "Мелеуз": "Asia/Yekaterinburg",
+  "Нижний Тагил": "Asia/Yekaterinburg",
+  "Нижняя Салда": "Asia/Yekaterinburg",
+  "Нижняя Тавда": "Asia/Yekaterinburg",
+  "Нижняя Тура": "Asia/Yekaterinburg",
+  "Новая Ляля": "Asia/Yekaterinburg",
+  "Новоуральск": "Asia/Yekaterinburg",
+  "Первоуральск": "Asia/Yekaterinburg",
+  "Полевской": "Asia/Yekaterinburg",
+  "Ревда": "Asia/Yekaterinburg",
+  "Реж": "Asia/Yekaterinburg",
+  "Североуральск": "Asia/Yekaterinburg",
+  "Серов": "Asia/Yekaterinburg",
+  "Стерлитамак": "Asia/Yekaterinburg",
+  "Сухой Лог": "Asia/Yekaterinburg",
+  "Сысерть": "Asia/Yekaterinburg",
+  "Тавда": "Asia/Yekaterinburg",
+  "Троицк": "Asia/Yekaterinburg",
+  "Туринск": "Asia/Yekaterinburg",
+  "Туринская Слобода": "Asia/Yekaterinburg",
+  "Учалы": "Asia/Yekaterinburg",
+  "Чишмы": "Asia/Yekaterinburg",
+  "Ясный": "Asia/Yekaterinburg",
 
   // UTC+6
   "Омск": "Asia/Omsk",
+  "Азово": "Asia/Omsk",
   "Исилькуль": "Asia/Omsk",
   "Калачинск": "Asia/Omsk",
   "Тара": "Asia/Omsk",
   "Тюкалинск": "Asia/Omsk",
-  "Азово": "Asia/Omsk",
 
   // UTC+7
   "Новосибирск": "Asia/Novosibirsk",
@@ -943,7 +959,7 @@ const MANUAL_TZ = {
   "Бишкек": "Asia/Bishkek",
   "Кызыл-Кия": "Asia/Bishkek",
 
-  // Фоллбек-значения
+  // Фоллбек-значение
   "Другой город": "Europe/Moscow"
 };
 
@@ -1059,8 +1075,19 @@ BX24.init(function() {
 
   BX24.callMethod('app.option.get', {}, function(optRes) {
     const appOptions = optRes.data() || {};
-    const entity = appOptions.entity || 'lead';
-    const field = appOptions.field;
+
+    let entity = 'lead';
+    if (
+      options.ENTITY_ID === 'DEAL' ||
+      options.DEAL_ID ||
+      String(options.ENTITY_TYPE_ID || '') === '2'
+    ) {
+      entity = 'deal';
+    }
+
+    const field = entity === 'deal'
+      ? appOptions.dealField
+      : appOptions.leadField;
 
     if (!entityId || !field) {
       cityEl.textContent = 'Нет ID или не выбрано поле';
@@ -1092,7 +1119,6 @@ BX24.init(function() {
       }
 
       cityEl.textContent = city;
-
       getTimezone(city).then(startClock);
     });
   });
