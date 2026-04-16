@@ -13,8 +13,8 @@
     { "src": "/options", "dest": "/api/options.php" },
     { "src": "/bind", "dest": "/api/bind.php" },
 
-    { "src": "/contact.html", "dest": "/contact.html" },
-    { "src": "/license.html", "dest": "/license.html" },
-    { "src": "/privacy.html", "dest": "/privacy.html" }
+    { "src": "/contact", "dest": "/api/contact.php" },
+    { "src": "/license", "dest": "/api/license.php" },
+    { "src": "/privacy", "dest": "/api/privacy.php" }
   ]
 }
