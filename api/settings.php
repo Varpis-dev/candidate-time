@@ -20,7 +20,7 @@ header('Content-Type: text/html; charset=utf-8');
       background: #f6f8fa;
       padding: 12px;
       border-radius: 10px;
-      min-height: 60px;
+      min-height: 80px;
     }
   </style>
 </head>
@@ -62,22 +62,56 @@ header('Content-Type: text/html; charset=utf-8');
       return document.getElementById('field').value;
     }
 
-    function loadFields(entity, selectedField = '') {
-      setStatus('Загружаю поля для: ' + (entity === 'deal' ? 'сделки' : 'лида') + ' ...');
+    function bxCall(method, params = {}, timeoutMs = 15000) {
+      return new Promise((resolve, reject) => {
+        let finished = false;
 
-      const method = entity === 'deal' ? 'crm.deal.fields' : 'crm.lead.fields';
+        const timer = setTimeout(() => {
+          if (!finished) {
+            finished = true;
+            reject(new Error('Таймаут вызова ' + method));
+          }
+        }, timeoutMs);
 
-      BX24.callMethod(method, {}, function(res) {
-        if (res.error()) {
-          setStatus('Ошибка загрузки полей:\n' + JSON.stringify(res.error(), null, 2));
-          return;
+        try {
+          BX24.callMethod(method, params, function(res) {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timer);
+
+            if (!res) {
+              reject(new Error('Пустой ответ от ' + method));
+              return;
+            }
+
+            if (res.error()) {
+              reject(new Error(JSON.stringify(res.error(), null, 2)));
+              return;
+            }
+
+            resolve(res.data());
+          });
+        } catch (e) {
+          if (!finished) {
+            finished = true;
+            clearTimeout(timer);
+            reject(e);
+          }
         }
+      });
+    }
+
+    async function loadFields(entity, selectedField = '') {
+      try {
+        setStatus('Загружаю поля для: ' + (entity === 'deal' ? 'сделки' : 'лида') + ' ...');
+
+        const method = entity === 'deal' ? 'crm.deal.fields' : 'crm.lead.fields';
+        const fields = await bxCall(method, {});
 
         const select = document.getElementById('field');
         select.innerHTML = '';
 
-        const fields = res.data() || {};
-        Object.keys(fields).forEach(code => {
+        Object.keys(fields || {}).forEach(code => {
           const option = document.createElement('option');
           option.value = code;
           option.textContent = code + ' — ' + (fields[code].title || code);
@@ -89,21 +123,16 @@ header('Content-Type: text/html; charset=utf-8');
           select.appendChild(option);
         });
 
-        setStatus('Поля загружены. Количество: ' + Object.keys(fields).length);
-      });
+        setStatus('Поля загружены. Количество: ' + Object.keys(fields || {}).length);
+      } catch (e) {
+        setStatus('Ошибка загрузки полей:\n' + String(e));
+      }
     }
 
-    function loadSavedOptions() {
-      setStatus('Читаю сохранённые настройки...');
-
-      BX24.callMethod('app.option.get', {}, function(res) {
-        if (res.error()) {
-          setStatus('Ошибка чтения app.option.get:\n' + JSON.stringify(res.error(), null, 2));
-          loadFields('lead');
-          return;
-        }
-
-        const options = res.data() || {};
+    async function loadSavedOptions() {
+      try {
+        setStatus('Читаю сохранённые настройки...');
+        const options = await bxCall('app.option.get', {});
         const entity = getSelectedEntity();
 
         const selectedField = entity === 'deal'
@@ -111,103 +140,102 @@ header('Content-Type: text/html; charset=utf-8');
           : (options.leadField || '');
 
         appendStatus('Настройки прочитаны.');
-        loadFields(entity, selectedField);
-      });
+        await loadFields(entity, selectedField);
+      } catch (e) {
+        setStatus('Ошибка чтения app.option.get:\n' + String(e));
+        await loadFields('lead');
+      }
     }
 
-    function saveOptions(callback) {
+    async function saveOptions() {
       const entity = getSelectedEntity();
       const field = getSelectedField();
 
       if (!field) {
         setStatus('Не выбрано поле города.');
-        return;
+        return null;
       }
 
-      setStatus('Читаю текущие настройки перед сохранением...');
+      try {
+        setStatus('Читаю текущие настройки перед сохранением...');
+        const current = await bxCall('app.option.get', {});
 
-      BX24.callMethod('app.option.get', {}, function(getRes) {
-        if (getRes.error()) {
-          setStatus('Ошибка чтения текущих настроек:\n' + JSON.stringify(getRes.error(), null, 2));
+        const payload = {
+          appName: 'Время кандидата',
+          leadField: current.leadField || '',
+          dealField: current.dealField || ''
+        };
+
+        if (entity === 'lead') {
+          payload.leadField = field;
+        } else {
+          payload.dealField = field;
+        }
+
+        appendStatus('Сохраняю настройки...');
+        await bxCall('app.option.set', { options: payload });
+
+        setStatus(
+          'Настройки сохранены.\n' +
+          'Сущность: ' + entity + '\n' +
+          'Поле: ' + field + '\n' +
+          'leadField: ' + payload.leadField + '\n' +
+          'dealField: ' + payload.dealField
+        );
+
+        return { entity, field };
+      } catch (e) {
+        setStatus('Ошибка сохранения:\n' + String(e));
+        return null;
+      }
+    }
+
+    BX24.init(async function() {
+      setStatus('BX24.init OK');
+      await loadSavedOptions();
+
+      document.getElementById('entity').addEventListener('change', async function() {
+        await loadSavedOptions();
+      });
+
+      document.getElementById('saveBtn').addEventListener('click', async function() {
+        await saveOptions();
+      });
+
+      document.getElementById('bindBtn').addEventListener('click', async function() {
+        const saved = await saveOptions();
+        if (!saved) return;
+
+        appendStatus('Получаю BX24 auth...');
+
+        const auth = BX24.getAuth();
+
+        if (!auth || !auth.access_token || !auth.domain) {
+          setStatus('Не удалось получить авторизацию через BX24.getAuth()');
           return;
         }
 
-        const current = getRes.data() || {};
+        appendStatus('Auth получен. Отправляю запрос в /bind ...');
 
-        if (entity === 'lead') {
-          current.leadField = field;
-        } else {
-          current.dealField = field;
-        }
-
-        current.appName = 'Время кандидата';
-
-        appendStatus('Сохраняю настройки...');
-
-        BX24.callMethod('app.option.set', {
-          options: current
-        }, function(saveRes) {
-          if (saveRes.error()) {
-            setStatus('Ошибка сохранения app.option.set:\n' + JSON.stringify(saveRes.error(), null, 2));
-            return;
-          }
-
+        fetch('/bind', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entity: saved.entity,
+            field: saved.field,
+            auth
+          })
+        })
+        .then(async (r) => {
+          const text = await r.text();
           setStatus(
-            'Настройки сохранены.\n' +
-            'Сущность: ' + entity + '\n' +
-            'Поле: ' + field
+            'Ответ /bind:\n' +
+            'HTTP ' + r.status + '\n\n' +
+            text
           );
-
-          if (callback) callback(entity, field);
-        });
-      });
-    }
-
-    BX24.init(function() {
-      setStatus('BX24.init OK');
-      loadSavedOptions();
-
-      document.getElementById('entity').addEventListener('change', function() {
-        loadSavedOptions();
-      });
-
-      document.getElementById('saveBtn').addEventListener('click', function() {
-        saveOptions();
-      });
-
-      document.getElementById('bindBtn').addEventListener('click', function() {
-        saveOptions(function(entity, field) {
-          appendStatus('Получаю BX24 auth...');
-
-          const auth = BX24.getAuth();
-
-          if (!auth || !auth.access_token || !auth.domain) {
-            setStatus('Не удалось получить авторизацию через BX24.getAuth()');
-            return;
-          }
-
-          appendStatus('Auth получен. Отправляю запрос в /bind ...');
-
-          fetch('/bind', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              entity,
-              field,
-              auth
-            })
-          })
-          .then(async (r) => {
-            const text = await r.text();
-            setStatus(
-              'Ответ /bind:\n' +
-              'HTTP ' + r.status + '\n\n' +
-              text
-            );
-          })
-          .catch(err => {
-            setStatus('Ошибка fetch(/bind):\n' + String(err));
-          });
+        })
+        .catch(err => {
+          setStatus('Ошибка fetch(/bind):\n' + String(err));
         });
       });
     });
