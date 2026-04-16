@@ -28,7 +28,7 @@ header('Content-Type: text/html; charset=utf-8');
   <select id="field"></select>
 
   <div style="margin-top: 16px;">
-    <button id="saveBtn">Сохранить</button>
+    <button id="saveBtn">Сохранить настройки сущности</button>
     <button id="bindBtn">Создать поле и привязать</button>
   </div>
 
@@ -39,7 +39,15 @@ header('Content-Type: text/html; charset=utf-8');
       document.getElementById('status').textContent = text;
     }
 
-    function loadFields(entity) {
+    function getSelectedEntity() {
+      return document.getElementById('entity').value;
+    }
+
+    function getSelectedField() {
+      return document.getElementById('field').value;
+    }
+
+    function loadFields(entity, selectedField = '') {
       const method = entity === 'deal' ? 'crm.deal.fields' : 'crm.lead.fields';
 
       BX24.callMethod(method, {}, function(res) {
@@ -56,33 +64,74 @@ header('Content-Type: text/html; charset=utf-8');
           const option = document.createElement('option');
           option.value = code;
           option.textContent = code + ' — ' + (fields[code].title || code);
+
+          if (selectedField && selectedField === code) {
+            option.selected = true;
+          }
+
           select.appendChild(option);
         });
       });
     }
 
-    function saveOptions(callback) {
-      const entity = document.getElementById('entity').value;
-      const field = document.getElementById('field').value;
-
-      BX24.callMethod('app.option.set', {
-        options: { entity, field, appName: 'Время кандидата' }
-      }, function(res) {
+    function loadSavedOptions() {
+      BX24.callMethod('app.option.get', {}, function(res) {
         if (res.error()) {
-          setStatus('Ошибка сохранения: ' + JSON.stringify(res.error()));
+          setStatus('Ошибка чтения настроек: ' + JSON.stringify(res.error()));
+          loadFields('lead');
           return;
         }
 
-        setStatus('Настройки сохранены.');
-        if (callback) callback(entity, field);
+        const options = res.data() || {};
+        const entity = getSelectedEntity();
+
+        const selectedField = entity === 'deal'
+          ? (options.dealField || '')
+          : (options.leadField || '');
+
+        loadFields(entity, selectedField);
+      });
+    }
+
+    function saveOptions(callback) {
+      const entity = getSelectedEntity();
+      const field = getSelectedField();
+
+      BX24.callMethod('app.option.get', {}, function(getRes) {
+        if (getRes.error()) {
+          setStatus('Ошибка чтения текущих настроек: ' + JSON.stringify(getRes.error()));
+          return;
+        }
+
+        const current = getRes.data() || {};
+
+        if (entity === 'lead') {
+          current.leadField = field;
+        } else {
+          current.dealField = field;
+        }
+
+        current.appName = 'Время кандидата';
+
+        BX24.callMethod('app.option.set', {
+          options: current
+        }, function(saveRes) {
+          if (saveRes.error()) {
+            setStatus('Ошибка сохранения: ' + JSON.stringify(saveRes.error()));
+            return;
+          }
+
+          setStatus('Настройки для ' + (entity === 'lead' ? 'лида' : 'сделки') + ' сохранены.');
+          if (callback) callback(entity, field);
+        });
       });
     }
 
     BX24.init(function() {
-      loadFields('lead');
+      loadSavedOptions();
 
       document.getElementById('entity').addEventListener('change', function() {
-        loadFields(this.value);
+        loadSavedOptions();
       });
 
       document.getElementById('saveBtn').addEventListener('click', function() {
@@ -94,7 +143,7 @@ header('Content-Type: text/html; charset=utf-8');
           const auth = BX24.getAuth();
 
           if (!auth || !auth.access_token || !auth.domain) {
-            setStatus('Не удалось получить auth через BX24.getAuth()');
+            setStatus('Не удалось получить авторизацию через BX24.getAuth()');
             return;
           }
 
