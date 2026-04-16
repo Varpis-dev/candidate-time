@@ -12,7 +12,16 @@ header('Content-Type: text/html; charset=utf-8');
     h2 { margin-top: 0; }
     label { display:block; margin: 14px 0 6px; font-weight: 600; }
     select, button { padding: 8px 10px; font-size: 14px; }
-    #status { margin-top: 16px; white-space: pre-wrap; color: #555; }
+    .buttons { margin-top: 16px; display:flex; gap:10px; flex-wrap: wrap; }
+    #status {
+      margin-top: 16px;
+      white-space: pre-wrap;
+      color: #444;
+      background: #f6f8fa;
+      padding: 12px;
+      border-radius: 10px;
+      min-height: 60px;
+    }
   </style>
 </head>
 <body>
@@ -27,16 +36,22 @@ header('Content-Type: text/html; charset=utf-8');
   <label for="field">Поле с городом</label>
   <select id="field"></select>
 
-  <div style="margin-top: 16px;">
+  <div class="buttons">
     <button id="saveBtn">Сохранить настройки сущности</button>
     <button id="bindBtn">Создать поле и привязать</button>
   </div>
 
-  <div id="status"></div>
+  <div id="status">Страница загружена.</div>
 
   <script>
+    const statusEl = document.getElementById('status');
+
     function setStatus(text) {
-      document.getElementById('status').textContent = text;
+      statusEl.textContent = text;
+    }
+
+    function appendStatus(text) {
+      statusEl.textContent += '\n' + text;
     }
 
     function getSelectedEntity() {
@@ -48,11 +63,13 @@ header('Content-Type: text/html; charset=utf-8');
     }
 
     function loadFields(entity, selectedField = '') {
+      setStatus('Загружаю поля для: ' + (entity === 'deal' ? 'сделки' : 'лида') + ' ...');
+
       const method = entity === 'deal' ? 'crm.deal.fields' : 'crm.lead.fields';
 
       BX24.callMethod(method, {}, function(res) {
         if (res.error()) {
-          setStatus('Ошибка загрузки полей: ' + JSON.stringify(res.error()));
+          setStatus('Ошибка загрузки полей:\n' + JSON.stringify(res.error(), null, 2));
           return;
         }
 
@@ -71,13 +88,17 @@ header('Content-Type: text/html; charset=utf-8');
 
           select.appendChild(option);
         });
+
+        setStatus('Поля загружены. Количество: ' + Object.keys(fields).length);
       });
     }
 
     function loadSavedOptions() {
+      setStatus('Читаю сохранённые настройки...');
+
       BX24.callMethod('app.option.get', {}, function(res) {
         if (res.error()) {
-          setStatus('Ошибка чтения настроек: ' + JSON.stringify(res.error()));
+          setStatus('Ошибка чтения app.option.get:\n' + JSON.stringify(res.error(), null, 2));
           loadFields('lead');
           return;
         }
@@ -89,6 +110,7 @@ header('Content-Type: text/html; charset=utf-8');
           ? (options.dealField || '')
           : (options.leadField || '');
 
+        appendStatus('Настройки прочитаны.');
         loadFields(entity, selectedField);
       });
     }
@@ -97,9 +119,16 @@ header('Content-Type: text/html; charset=utf-8');
       const entity = getSelectedEntity();
       const field = getSelectedField();
 
+      if (!field) {
+        setStatus('Не выбрано поле города.');
+        return;
+      }
+
+      setStatus('Читаю текущие настройки перед сохранением...');
+
       BX24.callMethod('app.option.get', {}, function(getRes) {
         if (getRes.error()) {
-          setStatus('Ошибка чтения текущих настроек: ' + JSON.stringify(getRes.error()));
+          setStatus('Ошибка чтения текущих настроек:\n' + JSON.stringify(getRes.error(), null, 2));
           return;
         }
 
@@ -113,21 +142,29 @@ header('Content-Type: text/html; charset=utf-8');
 
         current.appName = 'Время кандидата';
 
+        appendStatus('Сохраняю настройки...');
+
         BX24.callMethod('app.option.set', {
           options: current
         }, function(saveRes) {
           if (saveRes.error()) {
-            setStatus('Ошибка сохранения: ' + JSON.stringify(saveRes.error()));
+            setStatus('Ошибка сохранения app.option.set:\n' + JSON.stringify(saveRes.error(), null, 2));
             return;
           }
 
-          setStatus('Настройки для ' + (entity === 'lead' ? 'лида' : 'сделки') + ' сохранены.');
+          setStatus(
+            'Настройки сохранены.\n' +
+            'Сущность: ' + entity + '\n' +
+            'Поле: ' + field
+          );
+
           if (callback) callback(entity, field);
         });
       });
     }
 
     BX24.init(function() {
+      setStatus('BX24.init OK');
       loadSavedOptions();
 
       document.getElementById('entity').addEventListener('change', function() {
@@ -140,12 +177,16 @@ header('Content-Type: text/html; charset=utf-8');
 
       document.getElementById('bindBtn').addEventListener('click', function() {
         saveOptions(function(entity, field) {
+          appendStatus('Получаю BX24 auth...');
+
           const auth = BX24.getAuth();
 
           if (!auth || !auth.access_token || !auth.domain) {
             setStatus('Не удалось получить авторизацию через BX24.getAuth()');
             return;
           }
+
+          appendStatus('Auth получен. Отправляю запрос в /bind ...');
 
           fetch('/bind', {
             method: 'POST',
@@ -156,9 +197,17 @@ header('Content-Type: text/html; charset=utf-8');
               auth
             })
           })
-          .then(r => r.text())
-          .then(text => setStatus(text))
-          .catch(err => setStatus('Ошибка bind: ' + err));
+          .then(async (r) => {
+            const text = await r.text();
+            setStatus(
+              'Ответ /bind:\n' +
+              'HTTP ' + r.status + '\n\n' +
+              text
+            );
+          })
+          .catch(err => {
+            setStatus('Ошибка fetch(/bind):\n' + String(err));
+          });
         });
       });
     });
