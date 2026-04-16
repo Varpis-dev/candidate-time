@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://api.bitrix24.com/api/v1/"></script>
+</head>
+<body>
+
+<h2>Настройки "Время клиента"</h2>
+
+<select id="entity">
+  <option value="lead">Лид</option>
+  <option value="deal">Сделка</option>
+</select>
+
+<select id="field"></select>
+
+<button onclick="save()">Сохранить</button>
+
+<script>
+BX24.init(function() {
+  loadFields("lead");
+
+  document.getElementById("entity").onchange = function() {
+    loadFields(this.value);
+  };
+});
+
+function loadFields(entity) {
+  let method = entity === "lead" ? "crm.lead.fields" : "crm.deal.fields";
+
+  BX24.callMethod(method, {}, function(res) {
+    let select = document.getElementById("field");
+    select.innerHTML = "";
+
+    let data = res.data();
+
+    for (let key in data) {
+      let opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = key + " — " + (data[key].title || key);
+      select.appendChild(opt);
+    }
+  });
+}
+
+function save() {
+  let entity = document.getElementById("entity").value;
+  let field = document.getElementById("field").value;
+
+  BX24.callMethod("app.option.set", {
+    options: { entity, field }
+  }, function() {
+    alert("Сохранено");
+  });
+}
+</script>
+
+</body>
+</html>
