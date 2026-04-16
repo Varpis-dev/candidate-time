@@ -8,7 +8,7 @@ header('Content-Type: text/html; charset=utf-8');
   <title>Установка приложения</title>
   <script src="https://api.bitrix24.com/api/v1/"></script>
   <style>
-    body { font-family: Arial; padding: 30px; }
+    body { font-family: Arial, sans-serif; padding: 30px; }
     button {
       padding: 10px 16px;
       font-size: 14px;
@@ -22,18 +22,18 @@ header('Content-Type: text/html; charset=utf-8');
 <h2>Установка приложения «Время кандидата»</h2>
 <p>Установка завершена.</p>
 
-<button onclick="openSettings()">Открыть настройки</button>
+<button id="openSettingsBtn">Открыть настройки</button>
 
 <script>
-  BX24.init(function () {
-    BX24.installFinish();
-  });
+BX24.init(function () {
+  BX24.installFinish();
 
-  function openSettings() {
-    BX24.openApplication({
-      application: 'settings'
-    });
-  }
+  document.getElementById('openSettingsBtn').addEventListener('click', function () {
+    const url = new URL(window.location.href);
+    url.pathname = '/settings';
+    window.location.href = url.toString();
+  });
+});
 </script>
 
 </body>
