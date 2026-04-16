@@ -103,8 +103,6 @@ function setDebug(obj) {
   }
 }
 
-// Основная карта таймзон.
-// Всё, чего нет здесь, определяется через API fallback ниже.
 const MANUAL_TZ = {
   "Калининград": "Europe/Kaliningrad",
   "Балтийск": "Europe/Kaliningrad",
@@ -116,55 +114,23 @@ const MANUAL_TZ = {
   "Пенза": "Europe/Moscow",
   "Орёл": "Europe/Moscow",
   "Орел": "Europe/Moscow",
-  "Мелеуз": "Asia/Yekaterinburg",
-  "Краснодар": "Europe/Moscow",
-  "Ростов-на-Дону": "Europe/Moscow",
-  "Сочи": "Europe/Moscow",
-  "Воронеж": "Europe/Moscow",
-  "Курск": "Europe/Moscow",
-  "Белгород": "Europe/Moscow",
-  "Тула": "Europe/Moscow",
-  "Рязань": "Europe/Moscow",
-  "Ярославль": "Europe/Moscow",
-  "Иваново": "Europe/Moscow",
-  "Тверь": "Europe/Moscow",
-  "Смоленск": "Europe/Moscow",
-  "Псков": "Europe/Moscow",
-  "Великий Новгород": "Europe/Moscow",
-  "Архангельск": "Europe/Moscow",
-  "Мурманск": "Europe/Moscow",
-  "Петрозаводск": "Europe/Moscow",
-  "Вологда": "Europe/Moscow",
-  "Кострома": "Europe/Moscow",
-  "Владимир": "Europe/Moscow",
-  "Нижний Новгород": "Europe/Moscow",
-  "Казань": "Europe/Moscow",
-  "Набережные Челны": "Europe/Moscow",
-  "Елабуга": "Europe/Moscow",
-  "Чебоксары": "Europe/Moscow",
-  "Йошкар-Ола": "Europe/Moscow",
-  "Киров": "Europe/Moscow",
-  "Саранск": "Europe/Moscow",
 
   "Самара": "Europe/Samara",
   "Тольятти": "Europe/Samara",
   "Ульяновск": "Europe/Samara",
-  "Димитровград": "Europe/Samara",
   "Саратов": "Europe/Samara",
   "Энгельс": "Europe/Samara",
   "Астрахань": "Europe/Samara",
 
   "Екатеринбург": "Asia/Yekaterinburg",
-  "Челябинск": "Asia/Yekaterinburg",
-  "Курган": "Asia/Yekaterinburg",
-  "Тюмень": "Asia/Yekaterinburg",
+  "Мелеуз": "Asia/Yekaterinburg",
   "Уфа": "Asia/Yekaterinburg",
   "Стерлитамак": "Asia/Yekaterinburg",
   "Салават": "Asia/Yekaterinburg",
+  "Челябинск": "Asia/Yekaterinburg",
+  "Тюмень": "Asia/Yekaterinburg",
   "Оренбург": "Asia/Yekaterinburg",
   "Орск": "Asia/Yekaterinburg",
-  "Магнитогорск": "Asia/Yekaterinburg",
-  "Нефтекамск": "Asia/Yekaterinburg",
   "Сургут": "Asia/Yekaterinburg",
   "Нижневартовск": "Asia/Yekaterinburg",
   "Ханты-Мансийск": "Asia/Yekaterinburg",
@@ -172,21 +138,15 @@ const MANUAL_TZ = {
   "Ноябрьск": "Asia/Yekaterinburg",
   "Надым": "Asia/Yekaterinburg",
   "Салехард": "Asia/Yekaterinburg",
-  "Лабытнанги": "Asia/Yekaterinburg",
-  "Тарко-Сале": "Asia/Yekaterinburg",
 
   "Омск": "Asia/Omsk",
 
   "Новосибирск": "Asia/Novosibirsk",
   "Бердск": "Asia/Novosibirsk",
   "Искитим": "Asia/Novosibirsk",
-  "Обь": "Asia/Novosibirsk",
 
   "Барнаул": "Asia/Barnaul",
   "Бийск": "Asia/Barnaul",
-  "Рубцовск": "Asia/Barnaul",
-  "Славгород": "Asia/Barnaul",
-  "Яровое": "Asia/Barnaul",
   "Горно-Алтайск": "Asia/Barnaul",
 
   "Томск": "Asia/Tomsk",
@@ -197,23 +157,14 @@ const MANUAL_TZ = {
   "Прокопьевск": "Asia/Novokuznetsk",
   "Киселёвск": "Asia/Novokuznetsk",
   "Междуреченск": "Asia/Novokuznetsk",
-  "Белово": "Asia/Novokuznetsk",
-  "Ленинск-Кузнецкий": "Asia/Novokuznetsk",
-  "Юрга": "Asia/Novokuznetsk",
 
   "Абакан": "Asia/Krasnoyarsk",
-  "Черногорск": "Asia/Krasnoyarsk",
   "Красноярск": "Asia/Krasnoyarsk",
   "Ачинск": "Asia/Krasnoyarsk",
-  "Канск": "Asia/Krasnoyarsk",
-  "Минусинск": "Asia/Krasnoyarsk",
-  "Норильск": "Asia/Krasnoyarsk",
 
   "Иркутск": "Asia/Irkutsk",
   "Ангарск": "Asia/Irkutsk",
   "Братск": "Asia/Irkutsk",
-  "Усолье-Сибирское": "Asia/Irkutsk",
-  "Шелехов": "Asia/Irkutsk",
   "Улан-Удэ": "Asia/Irkutsk",
 
   "Чита": "Asia/Chita",
@@ -340,10 +291,28 @@ function detectEntity(options) {
   const entityId = String(options.ENTITY_ID || '').toUpperCase();
   const hasDealId = !!options.DEAL_ID;
   const hasLeadId = !!options.LEAD_ID;
-  const entityTypeId = String(options.ENTITY_TYPE_ID || '');
+  const entityTypeId =
+    String(options.ENTITY_TYPE_ID || '') ||
+    String((options.ENTITY_DATA && options.ENTITY_DATA.entityTypeId) || '');
 
-  if (entityId === 'DEAL' || hasDealId || entityTypeId === '2' || placement.includes('DEAL')) {
+  if (
+    entityId === 'DEAL' ||
+    entityId === 'CRM_DEAL' ||
+    hasDealId ||
+    entityTypeId === '2' ||
+    placement.includes('DEAL')
+  ) {
     return 'deal';
+  }
+
+  if (
+    entityId === 'LEAD' ||
+    entityId === 'CRM_LEAD' ||
+    hasLeadId ||
+    entityTypeId === '1' ||
+    placement.includes('LEAD')
+  ) {
+    return 'lead';
   }
 
   return 'lead';
@@ -356,6 +325,7 @@ function extractEntityValueId(options) {
     options.id ||
     options.LEAD_ID ||
     options.DEAL_ID ||
+    (options.ENTITY_DATA && (options.ENTITY_DATA.entityId || options.ENTITY_DATA.id)) ||
     null
   );
 }
@@ -384,7 +354,8 @@ BX24.init(function() {
       cityEl.textContent = 'Ошибка настроек';
       setDebug({
         step: 'app.option.get',
-        error: optRes.error()
+        error: optRes.error(),
+        placementInfo: info
       });
       return;
     }
@@ -418,7 +389,8 @@ BX24.init(function() {
           method,
           entityValueId,
           field,
-          error: res.error()
+          error: res.error(),
+          placementInfo: info
         });
         return;
       }
