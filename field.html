@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://api.bitrix24.com/api/v1/"></script>
+
+<style>
+body { margin:0; font-family: Arial; }
+.label { color:#8c99a5; font-size:12px; }
+.time { font-size:22px; font-weight:bold; }
+.city { color:#555; }
+</style>
+</head>
+
+<body>
+
+<div class="label">Время клиента</div>
+<div class="time" id="time">--:--</div>
+<div class="city" id="city"></div>
+
+<script>
+BX24.init(function () {
+
+  BX24.placement.info(function(info) {
+    let id = info.options.ID;
+
+    BX24.callMethod("app.option.get", {}, function(opt) {
+      let field = opt.data().field;
+      let entity = opt.data().entity;
+
+      let method = entity === "lead" ? "crm.lead.get" : "crm.deal.get";
+
+      BX24.callMethod(method, { id }, function(res) {
+        let data = res.data();
+        let city = data[field] || "Москва";
+
+        document.getElementById("city").textContent = city;
+
+        updateTime(city);
+      });
+    });
+  });
+
+});
+
+function updateTime(city) {
+  let tz = "Europe/Moscow";
+
+  if (city.includes("Новосибирск")) tz = "Asia/Novosibirsk";
+  if (city.includes("Чита")) tz = "Asia/Chita";
+
+  setInterval(() => {
+    let time = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }).format(new Date());
+
+    document.getElementById("time").textContent = time;
+  }, 1000);
+}
+</script>
+
+</body>
+</html>
