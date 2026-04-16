@@ -11,6 +11,10 @@
     { "src": "/settings", "dest": "/api/settings.php" },
     { "src": "/field", "dest": "/api/field.php" },
     { "src": "/options", "dest": "/api/options.php" },
-    { "src": "/bind", "dest": "/api/bind.php" }
+    { "src": "/bind", "dest": "/api/bind.php" },
+
+    { "src": "/contact.html", "dest": "/contact.html" },
+    { "src": "/license.html", "dest": "/license.html" },
+    { "src": "/privacy.html", "dest": "/privacy.html" }
   ]
 }
