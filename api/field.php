@@ -20,9 +20,25 @@ header('Content-Type: text/html; charset=utf-8');
     .wrap {
       box-sizing: border-box;
       width: 100%;
-      padding: 8px 10px;
+      padding: 9px 11px;
       border-radius: 14px;
-      background: #fff;
+      border: 1px solid transparent;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .wrap.ok {
+      background: #eefbf3;
+      border-color: #bfe8ce;
+    }
+
+    .wrap.warn {
+      background: #fff8e6;
+      border-color: #f1d48a;
+    }
+
+    .wrap.bad {
+      background: #fff1f0;
+      border-color: #efb7b3;
     }
 
     .time {
@@ -48,12 +64,13 @@ header('Content-Type: text/html; charset=utf-8');
 
     .status {
       font-size: 13px;
-      font-weight: 500;
-      line-height: 1.2;
+      font-weight: 600;
+      line-height: 1.25;
     }
 
-    .ok { color: #0b8f3c; }
-    .bad { color: #d92d20; }
+    .status.ok { color: #0b8f3c; }
+    .status.warn { color: #9a6a00; }
+    .status.bad { color: #d92d20; }
 
     .logo {
       height: 20px;
@@ -64,7 +81,7 @@ header('Content-Type: text/html; charset=utf-8');
 </head>
 
 <body>
-<div class="wrap">
+<div class="wrap" id="wrap">
   <div class="time" id="time">--:--:--</div>
   <div class="city" id="city">Загрузка...</div>
 
@@ -79,9 +96,13 @@ header('Content-Type: text/html; charset=utf-8');
 </div>
 
 <script>
+const wrapEl = document.getElementById('wrap');
 const timeEl = document.getElementById('time');
 const cityEl = document.getElementById('city');
 const statusEl = document.getElementById('status');
+
+const CALL_START_HOUR = 9;
+const CALL_END_HOUR = 21;
 
 const MANUAL_TZ = {
   "Калининград": "Europe/Kaliningrad",
@@ -513,22 +534,65 @@ async function getTimezone(city, region) {
   }
 }
 
-function renderStatus(hour) {
-  let text = 'Можно звонить';
-  let cls = 'ok';
+function formatDuration(totalMinutes) {
+  if (totalMinutes <= 0) return '0 мин';
 
-  if (hour < 9) {
-    text = 'Слишком рано';
-    cls = 'bad';
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) return hours + ' ч ' + minutes + ' мин';
+  if (hours > 0) return hours + ' ч';
+  return minutes + ' мин';
+}
+
+function getCallStatus(localDate) {
+  const hour = localDate.getHours();
+  const minute = localDate.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+  const startMinutes = CALL_START_HOUR * 60;
+  const endMinutes = CALL_END_HOUR * 60;
+
+  if (currentMinutes < startMinutes) {
+    return {
+      cls: 'bad',
+      text: 'Рано, лучше после 09:00',
+      sub: 'До начала окна: ' + formatDuration(startMinutes - currentMinutes)
+    };
   }
 
-  if (hour >= 21) {
-    text = 'Слишком поздно';
-    cls = 'bad';
+  if (currentMinutes >= endMinutes) {
+    const tomorrowStart = (24 * 60 - currentMinutes) + startMinutes;
+
+    return {
+      cls: 'bad',
+      text: 'Поздно, лучше завтра после 09:00',
+      sub: 'До окна звонка: ' + formatDuration(tomorrowStart)
+    };
   }
 
-  statusEl.textContent = text;
-  statusEl.className = 'status ' + cls;
+  const leftMinutes = endMinutes - currentMinutes;
+
+  if (leftMinutes <= 60) {
+    return {
+      cls: 'warn',
+      text: 'Можно звонить, но скоро поздно',
+      sub: 'До конца окна: ' + formatDuration(leftMinutes)
+    };
+  }
+
+  return {
+    cls: 'ok',
+    text: 'Можно звонить',
+    sub: 'До конца окна: ' + formatDuration(leftMinutes)
+  };
+}
+
+function renderStatus(localDate) {
+  const result = getCallStatus(localDate);
+
+  wrapEl.className = 'wrap ' + result.cls;
+  statusEl.className = 'status ' + result.cls;
+  statusEl.textContent = result.text + ' · ' + result.sub;
 }
 
 function startClock(tz) {
@@ -542,15 +606,21 @@ function startClock(tz) {
       second: '2-digit'
     }).format(now);
 
-    timeEl.textContent = time;
-
-    const hour = Number(new Intl.DateTimeFormat('en-GB', {
+    const parts = new Intl.DateTimeFormat('en-GB', {
       timeZone: tz,
       hour: '2-digit',
+      minute: '2-digit',
       hour12: false
-    }).format(now));
+    }).formatToParts(now);
 
-    renderStatus(hour);
+    const h = Number(parts.find(p => p.type === 'hour').value);
+    const m = Number(parts.find(p => p.type === 'minute').value);
+
+    const localDate = new Date();
+    localDate.setHours(h, m, 0, 0);
+
+    timeEl.textContent = time;
+    renderStatus(localDate);
 
     if (window.BX24 && BX24.fitWindow) {
       BX24.fitWindow();
@@ -668,6 +738,7 @@ BX24.init(async function() {
 
     if (!entityValueId || !cityField) {
       cityEl.textContent = 'Нет ID или не выбрано поле';
+      wrapEl.className = 'wrap bad';
       return;
     }
 
@@ -685,6 +756,9 @@ BX24.init(async function() {
 
     if (!city) {
       cityEl.textContent = 'Город не заполнен';
+      wrapEl.className = 'wrap bad';
+      statusEl.className = 'status bad';
+      statusEl.textContent = 'Заполните город кандидата';
       return;
     }
 
@@ -695,6 +769,9 @@ BX24.init(async function() {
 
   } catch (e) {
     cityEl.textContent = 'Ошибка загрузки';
+    wrapEl.className = 'wrap bad';
+    statusEl.className = 'status bad';
+    statusEl.textContent = 'Не удалось загрузить время';
   }
 });
 </script>
