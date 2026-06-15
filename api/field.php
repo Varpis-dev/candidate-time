@@ -20,78 +20,178 @@ header('Content-Type: text/html; charset=utf-8');
     .wrap {
       box-sizing: border-box;
       width: 100%;
-      padding: 9px 11px;
-      border-radius: 14px;
+      padding: 12px 14px;
+      border-radius: 18px;
       border: 1px solid transparent;
-      transition: background 0.3s ease, border-color 0.3s ease;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
     }
 
     .wrap.ok {
-      background: #eefbf3;
-      border-color: #bfe8ce;
+      background: linear-gradient(135deg, #f0fff6 0%, #ffffff 70%);
+      border-color: #bde8ce;
+      box-shadow: 0 4px 14px rgba(11, 143, 60, 0.08);
     }
 
     .wrap.warn {
-      background: #fff8e6;
-      border-color: #f1d48a;
+      background: linear-gradient(135deg, #fff8e6 0%, #ffffff 70%);
+      border-color: #efcc70;
+      box-shadow: 0 4px 14px rgba(154, 106, 0, 0.10);
     }
 
     .wrap.bad {
-      background: #fff1f0;
+      background: linear-gradient(135deg, #fff1f0 0%, #ffffff 70%);
       border-color: #efb7b3;
+      box-shadow: 0 4px 14px rgba(217, 45, 32, 0.08);
     }
 
-    .time {
-      font-size: 28px;
-      line-height: 1;
-      font-weight: 700;
-      color: #111;
+    .top-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
       margin-bottom: 6px;
     }
 
-    .city {
-      font-size: 15px;
-      color: #444;
-      line-height: 1.2;
+    .time {
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 800;
+      color: #111;
+      letter-spacing: -0.8px;
     }
 
-    .status-wrap {
+    .badge {
+      display: none;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .wrap.ok .badge {
+      display: inline-flex;
+      color: #0b8f3c;
+      background: rgba(11, 143, 60, 0.10);
+    }
+
+    .wrap.warn .badge {
+      display: inline-flex;
+      color: #9a6a00;
+      background: rgba(154, 106, 0, 0.12);
+    }
+
+    .wrap.bad .badge {
+      display: inline-flex;
+      color: #d92d20;
+      background: rgba(217, 45, 32, 0.10);
+    }
+
+    .city {
+      font-size: 17px;
+      color: #3e4550;
+      line-height: 1.25;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .status-card {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 6px;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.8);
     }
 
-    .status {
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.25;
+    .logo-box {
+      width: 48px;
+      height: 34px;
+      min-width: 48px;
+      border-radius: 10px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
     }
-
-    .status.ok { color: #0b8f3c; }
-    .status.warn { color: #9a6a00; }
-    .status.bad { color: #d92d20; }
 
     .logo {
-      height: 20px;
-      width: auto;
-      flex-shrink: 0;
+      max-width: 44px;
+      max-height: 28px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .status-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-title {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .status-sub {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.25;
+      opacity: 0.82;
+    }
+
+    .wrap.ok .status-title,
+    .wrap.ok .status-sub {
+      color: #0b8f3c;
+    }
+
+    .wrap.warn .status-title,
+    .wrap.warn .status-sub {
+      color: #9a6a00;
+    }
+
+    .wrap.bad .status-title,
+    .wrap.bad .status-sub {
+      color: #d92d20;
+    }
+
+    .empty-message {
+      font-size: 14px;
+      font-weight: 600;
+      color: #d92d20;
+      margin-top: 8px;
     }
   </style>
 </head>
 
 <body>
 <div class="wrap" id="wrap">
-  <div class="time" id="time">--:--:--</div>
+  <div class="top-row">
+    <div class="time" id="time">--:--:--</div>
+    <div class="badge" id="badge">Время кандидата</div>
+  </div>
+
   <div class="city" id="city">Загрузка...</div>
 
-  <div class="status-wrap">
-    <img
-      class="logo"
-      src="https://raw.githubusercontent.com/Varpis-dev/candidate-time/main/public/Logo_Vertical_Colored_Light-background.svg"
-      alt=""
-    >
-    <div id="status" class="status"></div>
+  <div class="status-card">
+    <div class="logo-box">
+      <img
+        class="logo"
+        src="https://raw.githubusercontent.com/Varpis-dev/candidate-time/main/public/Logo_Vertical_Colored_Light-background.svg"
+        alt=""
+      >
+    </div>
+
+    <div class="status-text">
+      <div class="status-title" id="statusTitle">Загрузка...</div>
+      <div class="status-sub" id="statusSub"></div>
+    </div>
   </div>
 </div>
 
@@ -99,7 +199,9 @@ header('Content-Type: text/html; charset=utf-8');
 const wrapEl = document.getElementById('wrap');
 const timeEl = document.getElementById('time');
 const cityEl = document.getElementById('city');
-const statusEl = document.getElementById('status');
+const badgeEl = document.getElementById('badge');
+const statusTitleEl = document.getElementById('statusTitle');
+const statusSubEl = document.getElementById('statusSub');
 
 const CALL_START_HOUR = 9;
 const CALL_END_HOUR = 21;
@@ -555,8 +657,9 @@ function getCallStatus(localDate) {
   if (currentMinutes < startMinutes) {
     return {
       cls: 'bad',
-      text: 'Рано, лучше после 09:00',
-      sub: 'До начала окна: ' + formatDuration(startMinutes - currentMinutes)
+      badge: 'Не звонить',
+      title: 'Рано для звонка',
+      sub: 'Лучше после 09:00 · до начала окна: ' + formatDuration(startMinutes - currentMinutes)
     };
   }
 
@@ -565,8 +668,9 @@ function getCallStatus(localDate) {
 
     return {
       cls: 'bad',
-      text: 'Поздно, лучше завтра после 09:00',
-      sub: 'До окна звонка: ' + formatDuration(tomorrowStart)
+      badge: 'Не звонить',
+      title: 'Поздно для звонка',
+      sub: 'Лучше завтра после 09:00 · до окна: ' + formatDuration(tomorrowStart)
     };
   }
 
@@ -575,15 +679,17 @@ function getCallStatus(localDate) {
   if (leftMinutes <= 60) {
     return {
       cls: 'warn',
-      text: 'Можно звонить, но скоро поздно',
-      sub: 'До конца окна: ' + formatDuration(leftMinutes)
+      badge: 'Скоро поздно',
+      title: 'Можно звонить',
+      sub: 'До конца окна осталось: ' + formatDuration(leftMinutes)
     };
   }
 
   return {
     cls: 'ok',
-    text: 'Можно звонить',
-    sub: 'До конца окна: ' + formatDuration(leftMinutes)
+    badge: 'Можно звонить',
+    title: 'Можно звонить',
+    sub: 'До конца окна осталось: ' + formatDuration(leftMinutes)
   };
 }
 
@@ -591,8 +697,9 @@ function renderStatus(localDate) {
   const result = getCallStatus(localDate);
 
   wrapEl.className = 'wrap ' + result.cls;
-  statusEl.className = 'status ' + result.cls;
-  statusEl.textContent = result.text + ' · ' + result.sub;
+  badgeEl.textContent = result.badge;
+  statusTitleEl.textContent = result.title;
+  statusSubEl.textContent = result.sub;
 }
 
 function startClock(tz) {
@@ -739,6 +846,9 @@ BX24.init(async function() {
     if (!entityValueId || !cityField) {
       cityEl.textContent = 'Нет ID или не выбрано поле';
       wrapEl.className = 'wrap bad';
+      badgeEl.textContent = 'Ошибка';
+      statusTitleEl.textContent = 'Не выбрано поле города';
+      statusSubEl.textContent = 'Открой настройки приложения и выбери поле города';
       return;
     }
 
@@ -757,8 +867,9 @@ BX24.init(async function() {
     if (!city) {
       cityEl.textContent = 'Город не заполнен';
       wrapEl.className = 'wrap bad';
-      statusEl.className = 'status bad';
-      statusEl.textContent = 'Заполните город кандидата';
+      badgeEl.textContent = 'Нет города';
+      statusTitleEl.textContent = 'Заполните город кандидата';
+      statusSubEl.textContent = 'Без города приложение не сможет определить местное время';
       return;
     }
 
@@ -770,8 +881,9 @@ BX24.init(async function() {
   } catch (e) {
     cityEl.textContent = 'Ошибка загрузки';
     wrapEl.className = 'wrap bad';
-    statusEl.className = 'status bad';
-    statusEl.textContent = 'Не удалось загрузить время';
+    badgeEl.textContent = 'Ошибка';
+    statusTitleEl.textContent = 'Не удалось загрузить время';
+    statusSubEl.textContent = 'Обновите карточку или проверьте настройки приложения';
   }
 });
 </script>
