@@ -84,12 +84,10 @@ const cityEl = document.getElementById('city');
 const statusEl = document.getElementById('status');
 
 const MANUAL_TZ = {
-  // UTC+2
   "Калининград": "Europe/Kaliningrad",
   "Балтийск": "Europe/Kaliningrad",
   "Советск": "Europe/Kaliningrad",
 
-  // UTC+3
   "Москва": "Europe/Moscow",
   "Санкт-Петербург": "Europe/Moscow",
   "Кузнецк": "Europe/Moscow",
@@ -110,8 +108,16 @@ const MANUAL_TZ = {
   "Смоленск": "Europe/Moscow",
   "Иваново": "Europe/Moscow",
   "Владимир": "Europe/Moscow",
+  "Нижний Новгород": "Europe/Moscow",
+  "Казань": "Europe/Moscow",
+  "Набережные Челны": "Europe/Moscow",
+  "Чебоксары": "Europe/Moscow",
+  "Йошкар-Ола": "Europe/Moscow",
+  "Саранск": "Europe/Moscow",
+  "Липецк": "Europe/Moscow",
+  "Тамбов": "Europe/Moscow",
+  "Волгоград": "Europe/Moscow",
 
-  // UTC+4
   "Самара": "Europe/Samara",
   "Тольятти": "Europe/Samara",
   "Ульяновск": "Europe/Samara",
@@ -119,160 +125,140 @@ const MANUAL_TZ = {
   "Энгельс": "Europe/Samara",
   "Астрахань": "Europe/Samara",
   "Балаково": "Europe/Samara",
-  "Безенчук": "Europe/Samara",
-  "Большая Черниговка": "Europe/Samara",
-  "Жигулевск": "Europe/Samara",
-  "Кинель-Черкассы": "Europe/Samara",
-  "Красный Кут": "Europe/Samara",
-  "Красный Яр": "Europe/Samara",
+  "Балашов": "Europe/Samara",
+  "Вольск": "Europe/Samara",
   "Маркс": "Europe/Samara",
-  "Мокроус": "Europe/Samara",
-  "Нариманов": "Europe/Samara",
-  "Нефтегорск": "Europe/Samara",
+  "Пугачев": "Europe/Samara",
+  "Ртищево": "Europe/Samara",
+  "Ершов": "Europe/Samara",
   "Новоузенск": "Europe/Samara",
   "Озинки": "Europe/Samara",
-  "Октябрьск": "Europe/Samara",
-  "Пугачев": "Europe/Samara",
-  "Сарапул": "Europe/Samara",
-  "Старая Майна": "Europe/Samara",
-  "Степное": "Europe/Samara",
-  "Татищево": "Europe/Samara",
-  "Чапаевск": "Europe/Samara",
+  "Хвалынск": "Europe/Samara",
 
-  // UTC+5
+  "Ижевск": "Europe/Samara",
+  "Сарапул": "Europe/Samara",
+  "Воткинск": "Europe/Samara",
+  "Можга": "Europe/Samara",
+
   "Екатеринбург": "Asia/Yekaterinburg",
   "Мелеуз": "Asia/Yekaterinburg",
   "Уфа": "Asia/Yekaterinburg",
   "Стерлитамак": "Asia/Yekaterinburg",
   "Салават": "Asia/Yekaterinburg",
+  "Ишимбай": "Asia/Yekaterinburg",
+  "Нефтекамск": "Asia/Yekaterinburg",
+  "Октябрьский": "Asia/Yekaterinburg",
+  "Туймазы": "Asia/Yekaterinburg",
+  "Белебей": "Asia/Yekaterinburg",
+  "Белорецк": "Asia/Yekaterinburg",
+  "Бирск": "Asia/Yekaterinburg",
+  "Дюртюли": "Asia/Yekaterinburg",
+  "Учалы": "Asia/Yekaterinburg",
+  "Янаул": "Asia/Yekaterinburg",
+
   "Челябинск": "Asia/Yekaterinburg",
+  "Магнитогорск": "Asia/Yekaterinburg",
+  "Миасс": "Asia/Yekaterinburg",
+  "Златоуст": "Asia/Yekaterinburg",
+  "Копейск": "Asia/Yekaterinburg",
+  "Троицк": "Asia/Yekaterinburg",
+
   "Тюмень": "Asia/Yekaterinburg",
+  "Ишим": "Asia/Yekaterinburg",
+  "Тобольск": "Asia/Yekaterinburg",
+  "Ялуторовск": "Asia/Yekaterinburg",
+
   "Курган": "Asia/Yekaterinburg",
+  "Шадринск": "Asia/Yekaterinburg",
+
   "Оренбург": "Asia/Yekaterinburg",
   "Орск": "Asia/Yekaterinburg",
-  "Магнитогорск": "Asia/Yekaterinburg",
-  "Нефтекамск": "Asia/Yekaterinburg",
+  "Бузулук": "Asia/Yekaterinburg",
+  "Бугуруслан": "Asia/Yekaterinburg",
+  "Новотроицк": "Asia/Yekaterinburg",
+
+  "Пермь": "Asia/Yekaterinburg",
+  "Березники": "Asia/Yekaterinburg",
+  "Соликамск": "Asia/Yekaterinburg",
+  "Краснокамск": "Asia/Yekaterinburg",
+  "Кунгур": "Asia/Yekaterinburg",
+
   "Сургут": "Asia/Yekaterinburg",
   "Нижневартовск": "Asia/Yekaterinburg",
   "Ханты-Мансийск": "Asia/Yekaterinburg",
+  "Нефтеюганск": "Asia/Yekaterinburg",
+  "Когалым": "Asia/Yekaterinburg",
+  "Мегион": "Asia/Yekaterinburg",
+  "Нягань": "Asia/Yekaterinburg",
+  "Урай": "Asia/Yekaterinburg",
+  "Югорск": "Asia/Yekaterinburg",
+  "Пыть-Ях": "Asia/Yekaterinburg",
+
   "Новый Уренгой": "Asia/Yekaterinburg",
   "Ноябрьск": "Asia/Yekaterinburg",
   "Надым": "Asia/Yekaterinburg",
   "Салехард": "Asia/Yekaterinburg",
   "Лабытнанги": "Asia/Yekaterinburg",
   "Тарко-Сале": "Asia/Yekaterinburg",
-  "Аксарка": "Asia/Yekaterinburg",
-  "Алапаевск": "Asia/Yekaterinburg",
-  "Арамиль": "Asia/Yekaterinburg",
-  "Артемовский": "Asia/Yekaterinburg",
-  "Арти": "Asia/Yekaterinburg",
-  "Асбест": "Asia/Yekaterinburg",
-  "Бисерть": "Asia/Yekaterinburg",
-  "Богданович": "Asia/Yekaterinburg",
-  "Буланаш": "Asia/Yekaterinburg",
-  "Верхний Тагил": "Asia/Yekaterinburg",
-  "Верхняя Пышма": "Asia/Yekaterinburg",
-  "Верхняя Салда": "Asia/Yekaterinburg",
-  "Верхняя Тура": "Asia/Yekaterinburg",
-  "Верхотурье": "Asia/Yekaterinburg",
-  "Ивдель": "Asia/Yekaterinburg",
-  "Ирбит": "Asia/Yekaterinburg",
-  "Каменск-Уральский": "Asia/Yekaterinburg",
-  "Карпинск": "Asia/Yekaterinburg",
-  "Качканар": "Asia/Yekaterinburg",
-  "Краснотурьинск": "Asia/Yekaterinburg",
-  "Красноуральск": "Asia/Yekaterinburg",
-  "Красноуфимск": "Asia/Yekaterinburg",
-  "Кировград": "Asia/Yekaterinburg",
-  "Лесной": "Asia/Yekaterinburg",
-  "Нижний Тагил": "Asia/Yekaterinburg",
-  "Нижняя Салда": "Asia/Yekaterinburg",
-  "Нижняя Тавда": "Asia/Yekaterinburg",
-  "Нижняя Тура": "Asia/Yekaterinburg",
-  "Новая Ляля": "Asia/Yekaterinburg",
-  "Новоуральск": "Asia/Yekaterinburg",
-  "Первоуральск": "Asia/Yekaterinburg",
-  "Полевской": "Asia/Yekaterinburg",
-  "Ревда": "Asia/Yekaterinburg",
-  "Реж": "Asia/Yekaterinburg",
-  "Североуральск": "Asia/Yekaterinburg",
-  "Серов": "Asia/Yekaterinburg",
-  "Сухой Лог": "Asia/Yekaterinburg",
-  "Сысерть": "Asia/Yekaterinburg",
-  "Тавда": "Asia/Yekaterinburg",
-  "Троицк": "Asia/Yekaterinburg",
-  "Туринск": "Asia/Yekaterinburg",
-  "Туринская Слобода": "Asia/Yekaterinburg",
-  "Учалы": "Asia/Yekaterinburg",
-  "Чишмы": "Asia/Yekaterinburg",
-  "Ясный": "Asia/Yekaterinburg",
 
-  // UTC+6
   "Омск": "Asia/Omsk",
-  "Азово": "Asia/Omsk",
   "Исилькуль": "Asia/Omsk",
   "Калачинск": "Asia/Omsk",
   "Тара": "Asia/Omsk",
-  "Тюкалинск": "Asia/Omsk",
 
-  // UTC+7
   "Новосибирск": "Asia/Novosibirsk",
   "Бердск": "Asia/Novosibirsk",
   "Искитим": "Asia/Novosibirsk",
   "Обь": "Asia/Novosibirsk",
   "Барабинск": "Asia/Novosibirsk",
-  "Куйбышев": "Asia/Novosibirsk",
-  "Татарск": "Asia/Novosibirsk",
-  "Тогучин": "Asia/Novosibirsk",
+
   "Барнаул": "Asia/Barnaul",
   "Бийск": "Asia/Barnaul",
   "Рубцовск": "Asia/Barnaul",
-  "Славгород": "Asia/Barnaul",
-  "Яровое": "Asia/Barnaul",
   "Белокуриха": "Asia/Barnaul",
   "Горно-Алтайск": "Asia/Barnaul",
+
   "Томск": "Asia/Tomsk",
   "Северск": "Asia/Tomsk",
+
   "Кемерово": "Asia/Novokuznetsk",
   "Новокузнецк": "Asia/Novokuznetsk",
   "Прокопьевск": "Asia/Novokuznetsk",
   "Киселёвск": "Asia/Novokuznetsk",
+  "Киселевск": "Asia/Novokuznetsk",
   "Междуреченск": "Asia/Novokuznetsk",
   "Белово": "Asia/Novokuznetsk",
   "Ленинск-Кузнецкий": "Asia/Novokuznetsk",
   "Юрга": "Asia/Novokuznetsk",
+  "Мыски": "Asia/Novokuznetsk",
+
   "Абакан": "Asia/Krasnoyarsk",
+  "Черногорск": "Asia/Krasnoyarsk",
   "Красноярск": "Asia/Krasnoyarsk",
   "Ачинск": "Asia/Krasnoyarsk",
   "Канск": "Asia/Krasnoyarsk",
   "Назарово": "Asia/Krasnoyarsk",
   "Минусинск": "Asia/Krasnoyarsk",
-  "Лесосибирск": "Asia/Krasnoyarsk",
   "Норильск": "Asia/Krasnoyarsk",
   "Дивногорск": "Asia/Krasnoyarsk",
-  "Енисейск": "Asia/Krasnoyarsk",
-  "Шарыпово": "Asia/Krasnoyarsk",
-  "Заозерный": "Asia/Krasnoyarsk",
-  "Ужур": "Asia/Krasnoyarsk",
 
-  // UTC+8
+  "Кызыл": "Asia/Krasnoyarsk",
+
   "Иркутск": "Asia/Irkutsk",
   "Ангарск": "Asia/Irkutsk",
   "Братск": "Asia/Irkutsk",
   "Усолье-Сибирское": "Asia/Irkutsk",
   "Шелехов": "Asia/Irkutsk",
   "Усть-Кут": "Asia/Irkutsk",
-  "Тайшет": "Asia/Irkutsk",
   "Тулун": "Asia/Irkutsk",
-  "Зима": "Asia/Irkutsk",
+
   "Улан-Удэ": "Asia/Irkutsk",
 
-  // UTC+9
   "Чита": "Asia/Chita",
+
   "Якутск": "Asia/Yakutsk",
   "Благовещенск": "Asia/Yakutsk",
 
-  // UTC+10
   "Владивосток": "Asia/Vladivostok",
   "Артём": "Asia/Vladivostok",
   "Артем": "Asia/Vladivostok",
@@ -280,20 +266,156 @@ const MANUAL_TZ = {
   "Находка": "Asia/Vladivostok",
   "Хабаровск": "Asia/Vladivostok",
 
-  // UTC+11
   "Южно-Сахалинск": "Asia/Sakhalin",
   "Магадан": "Asia/Magadan",
-
-  // UTC+12
   "Петропавловск-Камчатский": "Asia/Kamchatka",
 
-  // Не Россия
   "Бишкек": "Asia/Bishkek",
   "Кызыл-Кия": "Asia/Bishkek",
 
-  // fallback
   "Другой город": "Europe/Moscow"
 };
+
+const REGION_TZ = {
+  "калининград": "Europe/Kaliningrad",
+
+  "москва": "Europe/Moscow",
+  "московск": "Europe/Moscow",
+  "санкт-петербург": "Europe/Moscow",
+  "ленинград": "Europe/Moscow",
+  "краснодар": "Europe/Moscow",
+  "ростов": "Europe/Moscow",
+  "воронеж": "Europe/Moscow",
+  "белгород": "Europe/Moscow",
+  "курск": "Europe/Moscow",
+  "орлов": "Europe/Moscow",
+  "тульск": "Europe/Moscow",
+  "рязан": "Europe/Moscow",
+  "ярослав": "Europe/Moscow",
+  "твер": "Europe/Moscow",
+  "брянск": "Europe/Moscow",
+  "смоленск": "Europe/Moscow",
+  "иванов": "Europe/Moscow",
+  "владимир": "Europe/Moscow",
+  "нижегород": "Europe/Moscow",
+  "татарстан": "Europe/Moscow",
+  "чуваш": "Europe/Moscow",
+  "марий": "Europe/Moscow",
+  "мордов": "Europe/Moscow",
+  "киров": "Europe/Moscow",
+  "пенз": "Europe/Moscow",
+  "липецк": "Europe/Moscow",
+  "тамбов": "Europe/Moscow",
+  "крым": "Europe/Moscow",
+  "севастопол": "Europe/Moscow",
+  "ставропол": "Europe/Moscow",
+  "дагестан": "Europe/Moscow",
+  "чечен": "Europe/Moscow",
+  "ингуш": "Europe/Moscow",
+  "осет": "Europe/Moscow",
+  "кабардино": "Europe/Moscow",
+  "карачаево": "Europe/Moscow",
+  "адыге": "Europe/Moscow",
+  "калмык": "Europe/Moscow",
+  "архангел": "Europe/Moscow",
+  "мурман": "Europe/Moscow",
+  "карел": "Europe/Moscow",
+  "коми": "Europe/Moscow",
+  "вологод": "Europe/Moscow",
+  "новгород": "Europe/Moscow",
+  "псков": "Europe/Moscow",
+  "волгоград": "Europe/Moscow",
+
+  "самар": "Europe/Samara",
+  "саратов": "Europe/Samara",
+  "астрахан": "Europe/Samara",
+  "ульянов": "Europe/Samara",
+  "удмурт": "Europe/Samara",
+
+  "свердлов": "Asia/Yekaterinburg",
+  "челябин": "Asia/Yekaterinburg",
+  "тюмен": "Asia/Yekaterinburg",
+  "курган": "Asia/Yekaterinburg",
+  "башкортостан": "Asia/Yekaterinburg",
+  "башкир": "Asia/Yekaterinburg",
+  "оренбург": "Asia/Yekaterinburg",
+  "перм": "Asia/Yekaterinburg",
+  "ханты": "Asia/Yekaterinburg",
+  "югра": "Asia/Yekaterinburg",
+  "ямало": "Asia/Yekaterinburg",
+  "ненец": "Asia/Yekaterinburg",
+
+  "омск": "Asia/Omsk",
+
+  "новосибир": "Asia/Novosibirsk",
+  "алтайский": "Asia/Barnaul",
+  "республика алтай": "Asia/Barnaul",
+  "томск": "Asia/Tomsk",
+  "кемеров": "Asia/Novokuznetsk",
+  "кузбасс": "Asia/Novokuznetsk",
+  "краснояр": "Asia/Krasnoyarsk",
+  "хакас": "Asia/Krasnoyarsk",
+  "тыва": "Asia/Krasnoyarsk",
+  "тува": "Asia/Krasnoyarsk",
+
+  "иркут": "Asia/Irkutsk",
+  "бурят": "Asia/Irkutsk",
+
+  "забайкал": "Asia/Chita",
+
+  "якут": "Asia/Yakutsk",
+  "саха": "Asia/Yakutsk",
+  "амур": "Asia/Yakutsk",
+  "еврей": "Asia/Yakutsk",
+
+  "примор": "Asia/Vladivostok",
+  "хабаров": "Asia/Vladivostok",
+
+  "сахалин": "Asia/Sakhalin",
+  "магадан": "Asia/Magadan",
+  "камчат": "Asia/Kamchatka",
+  "чукот": "Asia/Anadyr"
+};
+
+function bxCall(method, params = {}, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+
+    const timer = setTimeout(() => {
+      if (!finished) {
+        finished = true;
+        reject(new Error('Таймаут вызова ' + method));
+      }
+    }, timeoutMs);
+
+    try {
+      BX24.callMethod(method, params, function(res) {
+        if (finished) return;
+
+        finished = true;
+        clearTimeout(timer);
+
+        if (!res) {
+          reject(new Error('Пустой ответ от ' + method));
+          return;
+        }
+
+        if (res.error()) {
+          reject(new Error(JSON.stringify(res.error(), null, 2)));
+          return;
+        }
+
+        resolve(res.data());
+      });
+    } catch (e) {
+      if (!finished) {
+        finished = true;
+        clearTimeout(timer);
+        reject(e);
+      }
+    }
+  });
+}
 
 function normalizeCity(city) {
   return String(city || '')
@@ -302,18 +424,17 @@ function normalizeCity(city) {
     .trim();
 }
 
-function getCachedTZ(city) {
-  const cache = JSON.parse(localStorage.getItem('tz_cache') || '{}');
-  return cache[city];
+function normalizeRegion(region) {
+  return String(region || '')
+    .toLowerCase()
+    .replace(/[ё]/g, 'е')
+    .replace(/\s+/g, ' ')
+    .replace(/область|обл\.?|республика|респ\.?|край|ао|автономный округ|г\.|город/gi, '')
+    .replace(/[()"«»]/g, '')
+    .trim();
 }
 
-function setCachedTZ(city, tz) {
-  const cache = JSON.parse(localStorage.getItem('tz_cache') || '{}');
-  cache[city] = tz;
-  localStorage.setItem('tz_cache', JSON.stringify(cache));
-}
-
-async function getTimezone(city) {
+function getTimezoneByCity(city) {
   const normalized = normalizeCity(city);
 
   for (const key in MANUAL_TZ) {
@@ -322,11 +443,54 @@ async function getTimezone(city) {
     }
   }
 
-  const cached = getCachedTZ(normalized);
+  return null;
+}
+
+function getTimezoneByRegion(region) {
+  const normalized = normalizeRegion(region);
+
+  if (!normalized) return null;
+
+  for (const key in REGION_TZ) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return REGION_TZ[key];
+    }
+  }
+
+  return null;
+}
+
+function getCachedTZ(city, region) {
+  const cache = JSON.parse(localStorage.getItem('tz_cache') || '{}');
+  return cache[normalizeCity(city) + '|' + normalizeRegion(region)];
+}
+
+function setCachedTZ(city, region, tz) {
+  const cache = JSON.parse(localStorage.getItem('tz_cache') || '{}');
+  cache[normalizeCity(city) + '|' + normalizeRegion(region)] = tz;
+  localStorage.setItem('tz_cache', JSON.stringify(cache));
+}
+
+async function getTimezone(city, region) {
+  const regionTz = getTimezoneByRegion(region);
+  if (regionTz) return regionTz;
+
+  const cityTz = getTimezoneByCity(city);
+  if (cityTz) return cityTz;
+
+  const cached = getCachedTZ(city, region);
   if (cached) return cached;
 
   try {
-    const geoRes = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(city));
+    const query = region
+      ? city + ', ' + region + ', Россия'
+      : city + ', Россия';
+
+    const geoRes = await fetch(
+      'https://nominatim.openstreetmap.org/search?format=json&q=' +
+      encodeURIComponent(query)
+    );
+
     const geoData = await geoRes.json();
 
     if (!geoData.length) return 'Europe/Moscow';
@@ -334,11 +498,15 @@ async function getTimezone(city) {
     const lat = geoData[0].lat;
     const lon = geoData[0].lon;
 
-    const tzRes = await fetch('https://timeapi.io/api/Time/current/coordinate?latitude=' + lat + '&longitude=' + lon);
-    const tzData = await tzRes.json();
+    const tzRes = await fetch(
+      'https://timeapi.io/api/Time/current/coordinate?latitude=' +
+      lat + '&longitude=' + lon
+    );
 
+    const tzData = await tzRes.json();
     const tz = tzData.timeZone || 'Europe/Moscow';
-    setCachedTZ(normalized, tz);
+
+    setCachedTZ(city, region, tz);
     return tz;
   } catch (e) {
     return 'Europe/Moscow';
@@ -437,62 +605,97 @@ function extractEntityValueId(options) {
   );
 }
 
-function parseCityValue(rawValue) {
+function getFieldEnumItems(fieldMeta) {
+  if (!fieldMeta) return [];
+
+  return (
+    fieldMeta.items ||
+    fieldMeta.ITEMS ||
+    fieldMeta.list ||
+    fieldMeta.LIST ||
+    fieldMeta.values ||
+    fieldMeta.VALUES ||
+    []
+  );
+}
+
+function parseFieldValue(rawValue, fieldCode, fieldsMeta) {
   if (Array.isArray(rawValue)) {
-    return rawValue[0] || '';
+    rawValue = rawValue[0] || '';
   }
 
   if (typeof rawValue === 'object' && rawValue !== null) {
-    return rawValue.VALUE || rawValue.value || '';
+    rawValue = rawValue.VALUE || rawValue.value || rawValue.ID || rawValue.id || '';
   }
 
-  return rawValue || '';
+  let value = rawValue || '';
+
+  const fieldMeta = fieldsMeta ? fieldsMeta[fieldCode] : null;
+  const items = getFieldEnumItems(fieldMeta);
+
+  if (items && items.length) {
+    const found = items.find(item => {
+      const id = String(item.ID || item.id || item.VALUE_ID || item.valueId || '');
+      const val = String(item.VALUE || item.value || item.NAME || item.name || '');
+      return id === String(value) || val === String(value);
+    });
+
+    if (found) {
+      return found.VALUE || found.value || found.NAME || found.name || value;
+    }
+  }
+
+  return value;
 }
 
-BX24.init(function() {
-  const info = BX24.placement.info();
-  const options = info && info.options ? info.options : {};
+BX24.init(async function() {
+  try {
+    const info = BX24.placement.info();
+    const options = info && info.options ? info.options : {};
 
-  const entity = detectEntity(options);
-  const entityValueId = extractEntityValueId(options);
+    const entity = detectEntity(options);
+    const entityValueId = extractEntityValueId(options);
 
-  BX24.callMethod('app.option.get', {}, function(optRes) {
-    if (optRes.error()) {
-      cityEl.textContent = 'Ошибка настроек';
-      return;
-    }
+    const appOptions = await bxCall('app.option.get', {});
 
-    const appOptions = optRes.data() || {};
-    const field = entity === 'deal'
-      ? appOptions.dealField
-      : appOptions.leadField;
+    const cityField = entity === 'deal'
+      ? (appOptions.dealCityField || appOptions.dealField)
+      : (appOptions.leadCityField || appOptions.leadField);
 
-    if (!entityValueId || !field) {
+    const regionField = entity === 'deal'
+      ? appOptions.dealRegionField
+      : appOptions.leadRegionField;
+
+    if (!entityValueId || !cityField) {
       cityEl.textContent = 'Нет ID или не выбрано поле';
       return;
     }
 
-    const method = entity === 'deal' ? 'crm.deal.get' : 'crm.lead.get';
+    const getMethod = entity === 'deal' ? 'crm.deal.get' : 'crm.lead.get';
+    const fieldsMethod = entity === 'deal' ? 'crm.deal.fields' : 'crm.lead.fields';
 
-    BX24.callMethod(method, { id: entityValueId }, function(res) {
-      if (res.error()) {
-        cityEl.textContent = 'Ошибка чтения карточки';
-        return;
-      }
+    const item = await bxCall(getMethod, { id: entityValueId });
+    const fieldsMeta = await bxCall(fieldsMethod, {});
 
-      const item = res.data() || {};
-      const rawCityValue = item[field];
-      const city = parseCityValue(rawCityValue);
+    const rawCityValue = item[cityField];
+    const rawRegionValue = regionField ? item[regionField] : '';
 
-      if (!city) {
-        cityEl.textContent = 'Город не заполнен';
-        return;
-      }
+    const city = parseFieldValue(rawCityValue, cityField, fieldsMeta);
+    const region = regionField ? parseFieldValue(rawRegionValue, regionField, fieldsMeta) : '';
 
-      cityEl.textContent = city;
-      getTimezone(city).then(startClock);
-    });
-  });
+    if (!city) {
+      cityEl.textContent = 'Город не заполнен';
+      return;
+    }
+
+    cityEl.textContent = region ? city + ', ' + region : city;
+
+    const tz = await getTimezone(city, region);
+    startClock(tz);
+
+  } catch (e) {
+    cityEl.textContent = 'Ошибка загрузки';
+  }
 });
 </script>
 
