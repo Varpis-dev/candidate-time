@@ -38,6 +38,7 @@ jobs:
           YC_KEY: ${{ secrets.YC_SA_JSON_KEY }}
         run: |
           printf '%s' "$YC_KEY" > /tmp/key.json
+          yc config set endpoint api.cloud.yandex.net:443
           yc config set service-account-key /tmp/key.json
           yc config set folder-id "$YC_FOLDER_ID"
           REG_HOST="${YC_REGISTRY%%/*}"
