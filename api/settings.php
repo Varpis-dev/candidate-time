@@ -8,24 +8,137 @@ header('Content-Type: text/html; charset=utf-8');
   <title>Время кандидата — настройки</title>
   <script src="https://api.bitrix24.com/api/v1/"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 24px; }
-    h2 { margin-top: 0; }
-    label { display:block; margin: 14px 0 6px; font-weight: 600; }
-    select, button { padding: 8px 10px; font-size: 14px; min-width: 360px; }
-    .buttons { margin-top: 16px; display:flex; gap:10px; flex-wrap: wrap; }
-    #status {
-      margin-top: 16px;
-      white-space: pre-wrap;
-      color: #444;
-      background: #f6f8fa;
-      padding: 12px;
+    :root {
+      --navy: #16355a;
+      --navy-dark: #0f2742;
+      --teal: #33c9d0;
+      --teal-soft: #e6f8f9;
+      --text: #1d2b3a;
+      --muted: #5f7186;
+      --border: #d5e0ea;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: #f4f8fb;
+    }
+
+    .card {
+      max-width: 620px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--teal);
+      border-radius: 16px;
+      padding: 22px 24px 24px;
+      box-shadow: 0 6px 20px rgba(22, 53, 90, 0.08);
+    }
+
+    .head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .head img {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--navy);
+    }
+
+    .hint {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--navy);
+    }
+
+    select {
+      width: 100%;
+      padding: 9px 10px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
       border-radius: 10px;
-      min-height: 70px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(51, 201, 208, 0.25);
+    }
+
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid var(--navy);
+    }
+
+    #saveBtn {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    #saveBtn:hover { background: var(--navy-dark); }
+
+    #bindBtn {
+      background: #fff;
+      color: var(--navy);
+    }
+
+    #bindBtn:hover { background: var(--teal-soft); }
+
+    #status {
+      margin-top: 18px;
+      white-space: pre-wrap;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--teal-soft);
+      border-left: 4px solid var(--teal);
+      padding: 12px 14px;
+      border-radius: 10px;
+      min-height: 60px;
     }
   </style>
 </head>
 <body>
-  <h2>Время кандидата</h2>
+<div class="card">
+  <div class="head">
+    <img src="/logo-k2.png" alt="">
+    <div>
+      <h2>Время кандидата</h2>
+      <p class="hint">Из каких полей брать город и регион кандидата</p>
+    </div>
+  </div>
 
   <label for="entity">Сущность</label>
   <select id="entity">
@@ -40,11 +153,12 @@ header('Content-Type: text/html; charset=utf-8');
   <select id="regionField"></select>
 
   <div class="buttons">
-    <button id="saveBtn">Сохранить настройки сущности</button>
+    <button id="saveBtn">Сохранить настройки</button>
     <button id="bindBtn">Создать поле и привязать</button>
   </div>
 
   <div id="status">Страница загружена.</div>
+</div>
 
 <script>
 const statusEl = document.getElementById('status');
@@ -105,6 +219,43 @@ function getRegionField() {
   return document.getElementById('regionField').value;
 }
 
+function fieldName(meta, code) {
+  meta = meta || {};
+  const candidates = [meta.listLabel, meta.formLabel, meta.filterLabel, meta.editorLabel, meta.title];
+  for (const c of candidates) {
+    const v = typeof c === 'object' && c !== null ? (c.ru || Object.values(c)[0]) : c;
+    if (v && String(v).trim() && String(v) !== code) return String(v).trim();
+  }
+  return code;
+}
+
+function fillSelect(select, list, saved) {
+  const groups = [
+    { label: 'Пользовательские поля', items: list.filter(f => f.custom) },
+    { label: 'Стандартные поля', items: list.filter(f => !f.custom) }
+  ];
+
+  groups.forEach(g => {
+    if (!g.items.length) return;
+    const og = document.createElement('optgroup');
+    og.label = g.label;
+    g.items.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.code;
+      opt.textContent = f.name === f.code ? f.code : f.name + ' (' + f.code + ')';
+      if (f.code === saved) opt.selected = true;
+      og.appendChild(opt);
+    });
+    select.appendChild(og);
+  });
+}
+
+function selectedLabel(selectId) {
+  const sel = document.getElementById(selectId);
+  const opt = sel.options[sel.selectedIndex];
+  return opt && opt.value ? opt.textContent : '';
+}
+
 async function loadFields() {
   const entity = getEntity();
   const method = entity === 'deal' ? 'crm.deal.fields' : 'crm.lead.fields';
@@ -133,21 +284,16 @@ async function loadFields() {
     ? (options.dealRegionField || '')
     : (options.leadRegionField || '');
 
-  Object.keys(fields || {}).forEach(code => {
-    const title = fields[code].title || fields[code].formLabel || code;
+  const list = Object.keys(fields || {}).map(code => ({
+    code,
+    name: fieldName(fields[code], code),
+    custom: code.indexOf('UF_') === 0
+  }));
 
-    const cityOpt = document.createElement('option');
-    cityOpt.value = code;
-    cityOpt.textContent = code + ' — ' + title;
-    if (code === savedCity) cityOpt.selected = true;
-    citySelect.appendChild(cityOpt);
+  list.sort((x, y) => x.name.localeCompare(y.name, 'ru'));
 
-    const regionOpt = document.createElement('option');
-    regionOpt.value = code;
-    regionOpt.textContent = code + ' — ' + title;
-    if (code === savedRegion) regionOpt.selected = true;
-    regionSelect.appendChild(regionOpt);
-  });
+  fillSelect(citySelect, list, savedCity);
+  fillSelect(regionSelect, list, savedRegion);
 
   setStatus(
     'Поля загружены.\n' +
@@ -192,8 +338,8 @@ async function saveOptions() {
   setStatus(
     'Настройки сохранены.\n' +
     'Сущность: ' + (entity === 'deal' ? 'Сделка' : 'Лид') + '\n' +
-    'Поле города: ' + cityField + '\n' +
-    'Поле области: ' + (regionField || 'не используется')
+    'Поле города: ' + selectedLabel('cityField') + '\n' +
+    'Поле области: ' + (regionField ? selectedLabel('regionField') : 'не используется')
   );
 
   return { entity, cityField, regionField };
