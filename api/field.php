@@ -448,6 +448,7 @@ const REGION_TZ = {
   "новгород": "Europe/Moscow",
   "псков": "Europe/Moscow",
   "волгоград": "Europe/Moscow",
+  "ненец": "Europe/Moscow",
 
   "самар": "Europe/Samara",
   "саратов": "Europe/Samara",
@@ -466,7 +467,7 @@ const REGION_TZ = {
   "ханты": "Asia/Yekaterinburg",
   "югра": "Asia/Yekaterinburg",
   "ямало": "Asia/Yekaterinburg",
-  "ненец": "Asia/Yekaterinburg",
+  "ямал": "Asia/Yekaterinburg",
 
   "омск": "Asia/Omsk",
 
@@ -489,10 +490,11 @@ const REGION_TZ = {
   "якут": "Asia/Yakutsk",
   "саха": "Asia/Yakutsk",
   "амур": "Asia/Yakutsk",
-  "еврей": "Asia/Yakutsk",
+
 
   "примор": "Asia/Vladivostok",
   "хабаров": "Asia/Vladivostok",
+  "еврей": "Asia/Vladivostok",
 
   "сахалин": "Asia/Sakhalin",
   "магадан": "Asia/Magadan",
@@ -524,7 +526,11 @@ function bxCall(method, params = {}, timeoutMs = 15000) {
         }
 
         if (res.error()) {
-          reject(new Error(JSON.stringify(res.error(), null, 2)));
+          const err = res.error();
+          const ex = (err && err.ex) || {};
+          const text = ex.error_description || ex.error ||
+            (err && err.toString && err.toString()) || 'неизвестная ошибка';
+          reject(new Error(method + ': ' + text));
           return;
         }
 
@@ -547,13 +553,19 @@ function normalizeCity(city) {
     .trim();
 }
 
+// Служебные слова убираем только целиком, а не из середины («Нижегородская» не трогаем)
+const REGION_STOP_WORDS = ['область', 'обл', 'республика', 'респ', 'край', 'ао',
+  'автономный', 'автономная', 'округ', 'г', 'город'];
+
 function normalizeRegion(region) {
   return String(region || '')
     .toLowerCase()
     .replace(/[ё]/g, 'е')
     .replace(/\s+/g, ' ')
-    .replace(/область|обл\.?|республика|респ\.?|край|ао|автономный округ|г\.|город/gi, '')
-    .replace(/[()"«»]/g, '')
+    .replace(/[()"«»,.]/g, ' ')
+    .split(' ')
+    .filter(w => w && !REGION_STOP_WORDS.includes(w))
+    .join(' ')
     .trim();
 }
 
@@ -569,70 +581,107 @@ function getTimezoneByCity(city) {
   return null;
 }
 
+const REGION_KEYS = Object.keys(REGION_TZ).sort((a, b) => b.length - a.length);
+
 function getTimezoneByRegion(region) {
   const normalized = normalizeRegion(region);
 
   if (!normalized) return null;
 
-  for (const key in REGION_TZ) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return REGION_TZ[key];
+  // Ямало-Ненецкий АО содержит «ненец», но живёт по Екатеринбургу
+  if (normalized.includes('ямал') || normalized.includes('янао')) {
+    return 'Asia/Yekaterinburg';
+  }
+
+  for (const key of REGION_KEYS) {
+    if (normalized.includes(key)) return REGION_TZ[key];
+  }
+
+  if (normalized.length >= 4) {
+    for (const key of REGION_KEYS) {
+      if (key.includes(normalized)) return REGION_TZ[key];
     }
   }
 
   return null;
 }
 
+function readTZCache() {
+  try {
+    return JSON.parse(localStorage.getItem('tz_cache_v2') || '{}') || {};
+  } catch (e) {
+    return {};
+  }
+}
+
 function getCachedTZ(city, region) {
-  const cache = JSON.parse(localStorage.getItem('tz_cache') || '{}');
-  return cache[normalizeCity(city) + '|' + normalizeRegion(region)];
+  return readTZCache()[normalizeCity(city) + '|' + normalizeRegion(region)];
 }
 
 function setCachedTZ(city, region, tz) {
-  const cache = JSON.parse(localStorage.getItem('tz_cache') || '{}');
-  cache[normalizeCity(city) + '|' + normalizeRegion(region)] = tz;
-  localStorage.setItem('tz_cache', JSON.stringify(cache));
+  try {
+    const cache = readTZCache();
+    cache[normalizeCity(city) + '|' + normalizeRegion(region)] = tz;
+    localStorage.setItem('tz_cache_v2', JSON.stringify(cache));
+  } catch (e) { /* без кэша тоже работаем */ }
+}
+
+function fetchJson(url, timeoutMs = 6000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  return fetch(url, { signal: ctrl.signal })
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .finally(() => clearTimeout(timer));
 }
 
 async function getTimezone(city, region) {
   const regionTz = getTimezoneByRegion(region);
-  if (regionTz) return regionTz;
+  if (regionTz) return { tz: regionTz, exact: true };
 
-  const cityTz = getTimezoneByCity(city);
-  if (cityTz) return cityTz;
+  if (normalizeCity(city) !== 'Другой город') {
+    const cityTz = getTimezoneByCity(city);
+    if (cityTz) return { tz: cityTz, exact: true };
+  }
 
   const cached = getCachedTZ(city, region);
-  if (cached) return cached;
+  if (cached) return { tz: cached, exact: true };
+
+  const fallback = (reason) => ({ tz: 'Europe/Moscow', exact: false, reason });
+
+  if (normalizeCity(city) === 'Другой город') {
+    return fallback('Город не указан точно');
+  }
 
   try {
     const query = region
       ? city + ', ' + region + ', Россия'
       : city + ', Россия';
 
-    const geoRes = await fetch(
-      'https://nominatim.openstreetmap.org/search?format=json&q=' +
+    const geoData = await fetchJson(
+      'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' +
       encodeURIComponent(query)
     );
 
-    const geoData = await geoRes.json();
+    if (!Array.isArray(geoData) || !geoData.length) {
+      return fallback('Город «' + city + '» не найден');
+    }
 
-    if (!geoData.length) return 'Europe/Moscow';
-
-    const lat = geoData[0].lat;
-    const lon = geoData[0].lon;
-
-    const tzRes = await fetch(
+    const tzData = await fetchJson(
       'https://timeapi.io/api/Time/current/coordinate?latitude=' +
-      lat + '&longitude=' + lon
+      geoData[0].lat + '&longitude=' + geoData[0].lon
     );
 
-    const tzData = await tzRes.json();
-    const tz = tzData.timeZone || 'Europe/Moscow';
+    if (!tzData || !tzData.timeZone) {
+      return fallback('Сервис часовых поясов не ответил');
+    }
 
-    setCachedTZ(city, region, tz);
-    return tz;
+    setCachedTZ(city, region, tzData.timeZone);
+    return { tz: tzData.timeZone, exact: true };
   } catch (e) {
-    return 'Europe/Moscow';
+    return fallback('Сервис определения пояса недоступен');
   }
 }
 
@@ -693,8 +742,17 @@ function getCallStatus(localDate) {
   };
 }
 
-function renderStatus(localDate) {
+function renderStatus(localDate, tzInfo) {
   const result = getCallStatus(localDate);
+
+  if (tzInfo && !tzInfo.exact) {
+    wrapEl.className = 'wrap warn';
+    badgeEl.textContent = 'Проверьте пояс';
+    statusTitleEl.textContent = 'Показано время по Москве';
+    statusSubEl.textContent = (tzInfo.reason || 'Пояс не определён') +
+      ' · уточните город или регион';
+    return;
+  }
 
   wrapEl.className = 'wrap ' + result.cls;
   badgeEl.textContent = result.badge;
@@ -702,7 +760,8 @@ function renderStatus(localDate) {
   statusSubEl.textContent = result.sub;
 }
 
-function startClock(tz) {
+function startClock(tzInfo) {
+  const tz = tzInfo.tz;
   function render() {
     const now = new Date();
 
@@ -727,7 +786,7 @@ function startClock(tz) {
     localDate.setHours(h, m, 0, 0);
 
     timeEl.textContent = time;
-    renderStatus(localDate);
+    renderStatus(localDate, tzInfo);
 
     if (window.BX24 && BX24.fitWindow) {
       BX24.fitWindow();
@@ -875,15 +934,19 @@ BX24.init(async function() {
 
     cityEl.textContent = region ? city + ', ' + region : city;
 
-    const tz = await getTimezone(city, region);
-    startClock(tz);
+    const tzInfo = await getTimezone(city, region);
+    startClock(tzInfo);
 
   } catch (e) {
     cityEl.textContent = 'Ошибка загрузки';
     wrapEl.className = 'wrap bad';
     badgeEl.textContent = 'Ошибка';
     statusTitleEl.textContent = 'Не удалось загрузить время';
-    statusSubEl.textContent = 'Обновите карточку или проверьте настройки приложения';
+    const reason = String((e && e.message) || e || '').slice(0, 160);
+    statusSubEl.textContent = reason
+      ? 'Причина: ' + reason
+      : 'Обновите карточку или проверьте настройки приложения';
+    console.error('[Время кандидата]', e);
   }
 });
 </script>
