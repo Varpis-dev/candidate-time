@@ -183,7 +183,7 @@ header('Content-Type: text/html; charset=utf-8');
     <div class="logo-box">
       <img
         class="logo"
-        src="https://raw.githubusercontent.com/Varpis-dev/candidate-time/main/public/Logo_Vertical_Colored_Light-background.svg"
+        src="/logo-k2.png"
         alt=""
       >
     </div>
