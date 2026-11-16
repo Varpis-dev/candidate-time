@@ -80,6 +80,9 @@ jobs:
 
       - name: Новая ревизия
         run: |
+          DEPLOY_IAM_TOKEN=$(yc iam create-token)
+          echo "::add-mask::$DEPLOY_IAM_TOKEN"
+          export YC_IAM_TOKEN="$DEPLOY_IAM_TOKEN"
           yc serverless container revision deploy \
             --container-name "$YC_CONTAINER_NAME" \
             --image "$IMAGE" \
