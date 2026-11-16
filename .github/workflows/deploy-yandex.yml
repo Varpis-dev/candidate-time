@@ -63,6 +63,17 @@ jobs:
             echo "PUBLIC_HOST=$HOST" >> "$GITHUB_ENV"
           fi
 
+
+      - name: Диагностика доступа перед публикацией
+        run: |
+          DEPLOY_ACCOUNT_ID=$(jq -r '.service_account_id' /tmp/key.json)
+          echo "Deploy account: $DEPLOY_ACCOUNT_ID"
+          echo "Revision account: $YC_SA_ID"
+          yc iam service-account get --id "$YC_SA_ID" --format json | jq '{id, name, folder_id}'
+          yc resource-manager folder list-access-bindings --id "$YC_FOLDER_ID" --format json | jq --arg deploy "$DEPLOY_ACCOUNT_ID" --arg runtime "$YC_SA_ID" '[.[] | select(.subject.id == $deploy or .subject.id == $runtime)]'
+          yc serverless container revision list --container-name "$YC_CONTAINER_NAME" --format json | jq '[.[] | {id, status, service_account_id, image: .image.image_url}]'
+          docker manifest inspect "$IMAGE" | jq '{schemaVersion, mediaType, manifests}'
+
       - name: Новая ревизия
         run: |
           yc serverless container revision deploy \
