@@ -4,7 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 /*
  * ============================================================
- * ВРЕМЯ КАНДИДАТА
+ * ВРЕМЯ КЛИЕНТА К2
  *
  * Этот файл:
  * 1. Обновляет HANDLER существующего типа candidate_time
@@ -12,7 +12,7 @@ header('Content-Type: application/json; charset=utf-8');
  *
  * 2. Если тип почему-то ещё не существует — создаёт его.
  *
- * 3. Проверяет наличие поля "Время кандидата"
+ * 3. Проверяет наличие поля "Время клиента К2"
  *    в лидах и сделках.
  *
  * 4. Существующие поля НЕ удаляет и НЕ пересоздаёт.
@@ -22,7 +22,7 @@ header('Content-Type: application/json; charset=utf-8');
 const USER_TYPE_ID = 'candidate_time';
 const FIELD_NAME   = 'UF_CRM_CAND_TIME';
 
-const FIELD_LABEL = 'Время кандидата';
+const FIELD_LABEL = 'Время клиента К2';
 
 
 /*
@@ -380,7 +380,7 @@ $typeUpdate =
                 FIELD_LABEL,
 
             'DESCRIPTION' =>
-                'Показывает текущее время кандидата по его городу и региону',
+                'Показывает текущее время клиента по его городу и региону',
 
             'OPTIONS' => [
                 'height' => 180
@@ -421,7 +421,7 @@ if (
                     FIELD_LABEL,
 
                 'DESCRIPTION' =>
-                    'Показывает текущее время кандидата по его городу и региону',
+                    'Показывает текущее время клиента по его городу и региону',
 
                 'OPTIONS' => [
                     'height' => 180
@@ -637,36 +637,35 @@ function ensureCandidateTimeField(
     }
 
 
-    /*
-     * ВАЖНО:
-     * существующее поле НЕ ТРОГАЕМ.
-     *
-     * Оно уже использует тип
-     * rest_<APP_ID>_candidate_time.
-     *
-     * Мы выше обновили сам HANDLER типа,
-     * поэтому поле автоматически начнёт
-     * открывать новый URL.
-     */
+    // Обновляем только подписи существующего поля, сохраняя его ID, тип и данные.
+    if (!empty($existing['found'])) {
+        $method = $entity === 'lead'
+            ? 'crm.lead.userfield.update'
+            : 'crm.deal.userfield.update';
 
-    if (
-        !empty(
-            $existing['found']
-        )
-    ) {
+        $result = callBitrix($method, [
+            'id' => $existing['field']['ID'],
+            'fields' => [
+                'EDIT_FORM_LABEL' => FIELD_LABEL,
+                'LIST_COLUMN_LABEL' => FIELD_LABEL,
+                'LIST_FILTER_LABEL' => FIELD_LABEL
+            ]
+        ], $auth);
+
+        if (!empty($result['error'])) {
+            return [
+                'success' => false,
+                'reason' => 'field_label_update_error',
+                'error' => $result
+            ];
+        }
 
         return [
             'success' => true,
-
-            'already_exists' =>
-                true,
-
-            'field_name' =>
-                $fieldName,
-
-            'current_type' =>
-                $existing['field']['USER_TYPE_ID'] ??
-                null
+            'already_exists' => true,
+            'label_updated' => true,
+            'field_name' => $fieldName,
+            'current_type' => $existing['field']['USER_TYPE_ID'] ?? null
         ];
     }
 
@@ -792,10 +791,10 @@ $dealField =
  */
 
 jsonResponse([
-    'success' => true,
+    'success' => !empty($leadField['success']) && !empty($dealField['success']),
 
     'message' =>
-        'Обработчик поля "Время кандидата" обновлён.',
+        'Обработчик поля "Время клиента К2" обновлён.',
 
     'domain' =>
         $baseUrl,

@@ -19,7 +19,7 @@ header('Content-Type: text/html; charset=utf-8');
 </head>
 <body>
 
-<h2>Установка приложения «Время кандидата»</h2>
+<h2>Установка приложения «Время клиента К2»</h2>
 <p>Установка завершена.</p>
 
 <button id="openSettingsBtn">Открыть настройки</button>

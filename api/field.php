@@ -5,7 +5,7 @@ header('Content-Type: text/html; charset=utf-8');
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Время кандидата</title>
+  <title>Время клиента К2</title>
   <script src="https://api.bitrix24.com/api/v1/"></script>
 
   <style>
@@ -174,7 +174,7 @@ header('Content-Type: text/html; charset=utf-8');
 <div class="wrap" id="wrap">
   <div class="top-row">
     <div class="time" id="time">--:--:--</div>
-    <div class="badge" id="badge">Время кандидата</div>
+    <div class="badge" id="badge">Время клиента К2</div>
   </div>
 
   <div class="city" id="city">Загрузка...</div>
@@ -927,7 +927,7 @@ BX24.init(async function() {
       cityEl.textContent = 'Город не заполнен';
       wrapEl.className = 'wrap bad';
       badgeEl.textContent = 'Нет города';
-      statusTitleEl.textContent = 'Заполните город кандидата';
+      statusTitleEl.textContent = 'Заполните город клиента';
       statusSubEl.textContent = 'Без города приложение не сможет определить местное время';
       return;
     }
@@ -946,7 +946,7 @@ BX24.init(async function() {
     statusSubEl.textContent = reason
       ? 'Причина: ' + reason
       : 'Обновите карточку или проверьте настройки приложения';
-    console.error('[Время кандидата]', e);
+    console.error('[Время клиента К2]', e);
   }
 });
 </script>
