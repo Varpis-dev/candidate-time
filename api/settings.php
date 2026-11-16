@@ -5,7 +5,7 @@ header('Content-Type: text/html; charset=utf-8');
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Время кандидата — настройки</title>
+  <title>Время клиента К2 — настройки</title>
   <script src="https://api.bitrix24.com/api/v1/"></script>
   <style>
     :root {
@@ -135,8 +135,8 @@ header('Content-Type: text/html; charset=utf-8');
   <div class="head">
     <img src="/logo-k2.png" alt="">
     <div>
-      <h2>Время кандидата</h2>
-      <p class="hint">Из каких полей брать город и регион кандидата</p>
+      <h2>Время клиента К2</h2>
+      <p class="hint">Из каких полей брать город и регион клиента</p>
     </div>
   </div>
 
@@ -316,7 +316,7 @@ async function saveOptions() {
   const current = await bxCall('app.option.get', {});
 
   const payload = {
-    appName: 'Время кандидата',
+    appName: 'Время клиента К2',
 
     leadCityField: current.leadCityField || current.leadField || '',
     leadRegionField: current.leadRegionField || '',
