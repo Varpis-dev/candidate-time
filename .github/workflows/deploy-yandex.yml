@@ -53,11 +53,11 @@ jobs:
 
       - name: Контейнер (создаётся при первом запуске)
         run: |
-          if ! yc serverless container get --name "$YC_CONTAINER_NAME" >/dev/null 2>&1; then
+          if ! yc serverless container get --name "$YC_CONTAINER_NAME" --folder-id "$YC_FOLDER_ID" >/dev/null 2>&1; then
             yc serverless container create --name "$YC_CONTAINER_NAME"
           fi
           yc serverless container allow-unauthenticated-invoke --name "$YC_CONTAINER_NAME"
-          URL=$(yc serverless container get --name "$YC_CONTAINER_NAME" --format json | jq -r .url)
+          URL=$(yc serverless container get --name "$YC_CONTAINER_NAME" --folder-id "$YC_FOLDER_ID" --format json | jq -r .url)
           if [ -z "$PUBLIC_HOST" ]; then
             HOST=$(echo "$URL" | sed -E 's#^https?://##; s#/.*$##')
             echo "PUBLIC_HOST=$HOST" >> "$GITHUB_ENV"
@@ -75,7 +75,7 @@ jobs:
           echo "Roles granted on the service account resource:"
           yc iam service-account list-access-bindings --id "$YC_SA_ID" --format json | jq --arg account "$DEPLOY_ACCOUNT_ID" '[.[] | select(.subject.id == $account) | {role_id, subject}]' || true
           echo "Current container identity:"
-          yc serverless container get --name "$YC_CONTAINER_NAME" --format json | jq '{id, name, folder_id}'
+          yc serverless container get --name "$YC_CONTAINER_NAME" --folder-id "$YC_FOLDER_ID" --format json | jq '{id, name, folder_id}'
           docker manifest inspect "$IMAGE" | jq '{schemaVersion, mediaType, manifests}'
 
       - name: Новая ревизия
@@ -84,6 +84,7 @@ jobs:
           echo "::add-mask::$DEPLOY_IAM_TOKEN"
           export YC_IAM_TOKEN="$DEPLOY_IAM_TOKEN"
           yc serverless container revision deploy \
+            --folder-id "$YC_FOLDER_ID" \
             --container-name "$YC_CONTAINER_NAME" \
             --image "$IMAGE" \
             --cores 1 \
