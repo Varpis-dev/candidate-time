@@ -72,6 +72,10 @@ jobs:
           yc iam service-account get --id "$YC_SA_ID" --format json | jq '{id, name, folder_id}'
           yc resource-manager folder list-access-bindings --id "$YC_FOLDER_ID" --format json | jq --arg deploy "$DEPLOY_ACCOUNT_ID" --arg runtime "$YC_SA_ID" '[.[] | select(.subject.id == $deploy or .subject.id == $runtime)]'
           yc serverless container revision list --container-name "$YC_CONTAINER_NAME" --format json | jq '[.[] | {id, status, service_account_id, image: .image.image_url}]'
+          echo "Roles granted on the service account resource:"
+          yc iam service-account list-access-bindings --id "$YC_SA_ID" --format json | jq --arg account "$DEPLOY_ACCOUNT_ID" '[.[] | select(.subject.id == $account) | {role_id, subject}]' || true
+          echo "Current container identity:"
+          yc serverless container get --name "$YC_CONTAINER_NAME" --format json | jq '{id, name, folder_id}'
           docker manifest inspect "$IMAGE" | jq '{schemaVersion, mediaType, manifests}'
 
       - name: Новая ревизия
