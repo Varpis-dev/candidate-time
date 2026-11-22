@@ -887,7 +887,7 @@ function parseFieldValue(rawValue, fieldCode, fieldsMeta) {
 BX24.init(async function() {
   try {
     const info = BX24.placement.info();
-    const options = info && info.options ? info.options : {};
+    const options = { ...(info && info.options ? info.options : {}), placement: info && info.placement };
 
     const entity = detectEntity(options);
     const entityValueId = extractEntityValueId(options);
@@ -953,3 +953,4 @@ BX24.init(async function() {
 
 </body>
 </html>
+

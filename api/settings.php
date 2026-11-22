@@ -7,6 +7,7 @@ header('Content-Type: text/html; charset=utf-8');
   <meta charset="UTF-8">
   <title>Время клиента К2 — настройки</title>
   <script src="https://api.bitrix24.com/api/v1/"></script>
+  <script src="/registration.js"></script>
   <style>
     :root {
       --navy: #16355a;
@@ -154,7 +155,7 @@ header('Content-Type: text/html; charset=utf-8');
 
   <div class="buttons">
     <button id="saveBtn">Сохранить настройки</button>
-    <button id="bindBtn">Создать поле и привязать</button>
+    <button id="bindBtn">Восстановить встройки и поля</button>
   </div>
 
   <div id="status">Страница загружена.</div>
@@ -366,31 +367,15 @@ BX24.init(async function() {
     });
 
     document.getElementById('bindBtn').addEventListener('click', async function() {
+      const button = this;
+      button.disabled = true;
       try {
-        const saved = await saveOptions();
-        if (!saved) return;
-
-        const auth = BX24.getAuth();
-
-        if (!auth || !auth.access_token || !auth.domain) {
-          setStatus('Не удалось получить авторизацию Б24');
-          return;
-        }
-
-        const r = await fetch('/bind', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            entity: saved.entity,
-            field: saved.cityField,
-            auth
-          })
-        });
-
-        const text = await r.text();
-        setStatus('Ответ /bind:\nHTTP ' + r.status + '\n\n' + text);
+        await CandidateTimeRegistration.register(BX24, window.location.origin, setStatus);
+        setStatus('Вкладки лида и сделки, тип поля и поля восстановлены. Настройки города и региона сохраняются кнопкой «Сохранить настройки».');
       } catch (e) {
-        setStatus('Ошибка создания поля:\n' + String(e));
+        setStatus('Ошибка восстановления встройки:\n' + String(e));
+      } finally {
+        button.disabled = false;
       }
     });
 
@@ -401,3 +386,4 @@ BX24.init(async function() {
 </script>
 </body>
 </html>
+
