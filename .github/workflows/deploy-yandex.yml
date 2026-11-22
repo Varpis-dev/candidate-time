@@ -21,6 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Проверка установки и синтаксиса
+        run: |
+          node --test tests/*.test.js
+          find api -name '*.php' -print0 | xargs -0 -n1 php -l
+
       - name: Проверка настроек
         run: |
           for v in YC_FOLDER_ID YC_REGISTRY YC_SA_ID YC_CONTAINER_NAME; do
@@ -105,3 +114,4 @@ jobs:
       - name: Очистка
         if: always()
         run: rm -f /tmp/key.json
+
